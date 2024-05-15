@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <concepts>
 #include <source_location>
+#include <string_view>
 
 namespace ut
 {
@@ -53,29 +54,29 @@ namespace ut
       template <mode Mode>
       struct test_begin
       {
-         const char* file_name{};
+         std::string_view file_name{};
          int line{};
          const char* name{};
       };
       template <mode Mode>
       struct test_end
       {
-         const char* file_name{};
+         std::string_view file_name{};
          int line{};
-         const char* name{};
+         std::string_view name{};
          enum { FAILED, PASSED, COMPILE_TIME } result{};
       };
       template <class Expr>
       struct assert_pass
       {
-         const char* file_name{};
+         std::string_view file_name{};
          int line{};
          Expr expr{};
       };
       template <class Expr>
       struct assert_fail
       {
-         const char* file_name{};
+         std::string_view file_name{};
          int line{};
          Expr expr{};
       };
@@ -118,8 +119,14 @@ namespace ut
             else {
                initial_new_line = '\n';
             }
-            os << event.file_name << ':' << event.line << ':' << "FAILED:" << '\"' << current_test.name
-               << "\": " << event.expr;
+            os << "FAILED \"" << current_test.name << "\" ";
+            const auto n = event.file_name.size();
+            const auto start = n <= 32 ? 0 : n - 32;
+            if (start > 0) {
+               os << "...";
+            }
+            os << event.file_name.substr(start, n) << ":" << event.line << '\n';
+            os << event.expr << '\n';
          }
       }
       constexpr auto on(const events::fatal&) {}
