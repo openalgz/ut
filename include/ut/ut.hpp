@@ -18,6 +18,8 @@ namespace ut
 {
    namespace detail
    {
+      constexpr bool fatal = true;
+      
       template <class>
       constexpr auto is_mutable_lambda_v = false;
       template <class R, class B, class... Ts>
@@ -260,10 +262,7 @@ namespace ut
 #if defined(UT_COMPILE_TIME_ONLY)
             return os;
 #else
-            static_assert(
-               requires { std::clog << t; },
-               "[ERROR] No output supported: Consider #include <iostream> | ut::cfg<ut::override> = custom_cfg{} | "
-               "#define UT_COMPILE_TIME_ONLY");
+            static_assert(requires { std::clog << t; });
             return (std::clog << t);
 #endif
          }
@@ -298,25 +297,10 @@ namespace ut
 
    constexpr struct
    {
-      constexpr auto operator()(const bool result, const char* file_name = __builtin_FILE(), int line = __builtin_LINE()) const
+      template <bool Fatal>
+      struct evaluate
       {
-         if (std::is_constant_evaluated()) {
-            if (!result) {
-               detail::failed();
-            }
-         }
-         else if (result) {
-            detail::cfg(result).reporter.on(events::assert_pass{file_name, line});
-         }
-         else {
-            detail::cfg(result).reporter.on(events::assert_fail{file_name, line});
-         }
-         return log{result};
-      }
-
-      struct fatal_expr
-      {
-         constexpr fatal_expr(const bool result, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
+         constexpr evaluate(const bool result, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
          {
             if (std::is_constant_evaluated()) {
                if (!result) {
@@ -328,15 +312,23 @@ namespace ut
             }
             else {
                detail::cfg(result).reporter.on(events::assert_fail{file_name, line});
-               detail::cfg(result).reporter.on(events::fatal{});
+               if constexpr (Fatal) {
+                  detail::cfg(result).reporter.on(events::fatal{});
+               }
             }
          }
          bool result{};
       };
-      constexpr auto operator[](fatal_expr e) const
+      
+      constexpr auto operator()(evaluate<not detail::fatal> e) const
       {
          return log{e.result};
-      } /// multiple and/or default parameters requires C++23
+      }
+      
+      constexpr auto operator[](evaluate<detail::fatal> e) const
+      {
+         return log{e.result};
+      }
 
      private:
       struct log
