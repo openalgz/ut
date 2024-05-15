@@ -138,14 +138,14 @@ namespace ut
          using namespace events;
          if (!std::is_constant_evaluated()) {
             if (event.asserts[summary::FAILED] || event.tests[summary::FAILED]) {
-               os << "\nFAILED: ";
+               os << "\nFAILED\n";
             }
             else {
-               os << "PASSED: ";
+               os << "\nPASSED\n";
             }
             os << "tests: " << (event.tests[summary::PASSED] + event.tests[summary::FAILED]) << " ("
                << event.tests[summary::PASSED] << " passed, " << event.tests[summary::FAILED]
-               << " failed, " << event.tests[summary::COMPILE_TIME] << " compile-time), "
+               << " failed, " << event.tests[summary::COMPILE_TIME] << " compile-time)\n"
                << "asserts: " << (event.asserts[summary::PASSED] + event.asserts[summary::FAILED])
                << " (" << event.asserts[summary::PASSED] << " passed, "
                << event.asserts[summary::FAILED] << " failed)\n";
@@ -300,7 +300,7 @@ namespace ut
       template <bool Fatal>
       struct evaluate
       {
-         constexpr evaluate(const bool result, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
+         constexpr evaluate(const bool result, const char* file_name = __builtin_FILE(), int line = __builtin_LINE()) : result(result)
          {
             if (std::is_constant_evaluated()) {
                if (!result) {
