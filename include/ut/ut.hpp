@@ -56,14 +56,14 @@ namespace ut
       struct test_begin
       {
          std::string_view file_name{};
-         int line{};
+         uint_least32_t line{};
          std::string_view name{};
       };
       template <mode Mode>
       struct test_end
       {
          std::string_view file_name{};
-         int line{};
+         uint_least32_t line{};
          std::string_view name{};
          enum { FAILED, PASSED, COMPILE_TIME } result{};
       };
@@ -71,7 +71,7 @@ namespace ut
       {
          bool passed{};
          std::string_view file_name{};
-         int line{};
+         uint_least32_t line{};
       };
       struct fatal
       {};
@@ -209,7 +209,7 @@ namespace ut
    struct runner
    {
       template <class Test>
-      constexpr auto on(Test test, const char* file_name, int line, const char* name) -> bool
+      constexpr auto on(Test test, const char* file_name, uint_least32_t line, const char* name) -> bool
       {
          if (std::is_constant_evaluated()) {
             if constexpr (!detail::is_mutable_lambda_v<decltype(&Test::operator())>) {
@@ -293,7 +293,7 @@ namespace ut
       template <bool Fatal>
       struct eval
       {
-         constexpr eval(const bool passed, const char* file_name = __builtin_FILE(), int line = __builtin_LINE()) : passed(passed)
+         constexpr eval(const bool passed, const char* file_name = __builtin_FILE(), uint_least32_t line = __builtin_LINE()) : passed(passed)
          {
             if (std::is_constant_evaluated() && not passed) {
                detail::failed();
