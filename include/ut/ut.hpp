@@ -24,7 +24,7 @@ namespace ut
       constexpr auto has_capture_lambda_v = sizeof(Fn) > 1ul;
       
       template <class T, class...>
-      struct type_identity
+      struct identity
       {
          using type = T;
       };
@@ -291,7 +291,7 @@ namespace ut
       template <class... Ts>
       [[nodiscard]] constexpr auto& cfg(Ts&&...)
       {
-         return ut::cfg<typename detail::type_identity<override, Ts...>::type>;
+         return ut::cfg<typename detail::identity<override, Ts...>::type>;
       }
       void failed(); /// fail in constexpr context
    }
@@ -319,26 +319,22 @@ namespace ut
 
       struct fatal_expr
       {
-         constexpr fatal_expr(auto expr, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
+         template <class Expr>
+            requires (std::same_as<std::decay_t<Expr>, bool> || requires { static_cast<bool>(std::declval<Expr>()); })
+         constexpr fatal_expr(Expr expr, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
          {
-            if constexpr (constexpr auto supported =
-                             std::same_as<bool, decltype(expr)> || !requires { static_cast<bool>(expr); };
-                          supported) {
-               static_assert(!supported, "[ERROR] Expression required: expect[42_i == 42]");
+            bool result{};
+            if (result = static_cast<bool>(expr); std::is_constant_evaluated()) {
+               if (!result) {
+                  detail::failed();
+               }
+            }
+            else if (result) {
+               detail::cfg(expr).reporter.on(events::assert_pass<Expr>{file_name, line, expr});
             }
             else {
-               if (result = static_cast<bool>(expr); std::is_constant_evaluated()) {
-                  if (!result) {
-                     detail::failed();
-                  }
-               }
-               else if (result) {
-                  detail::cfg(expr).reporter.on(events::assert_pass{file_name, line, expr});
-               }
-               else {
-                  detail::cfg(expr).reporter.on(events::assert_fail{file_name, line, expr});
-                  detail::cfg(expr).reporter.on(events::fatal{});
-               }
+               detail::cfg(expr).reporter.on(events::assert_fail<Expr>{file_name, line, expr});
+               detail::cfg(expr).reporter.on(events::fatal{});
             }
          }
          bool result{};
