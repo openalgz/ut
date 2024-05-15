@@ -95,7 +95,7 @@ namespace ut
       };
    } // namespace events
 
-   template <class TOStream>
+   template <class OStream>
    struct outputter
    {
       template <events::mode Mode>
@@ -132,23 +132,24 @@ namespace ut
       }
       constexpr auto on(const events::summary& event)
       {
+         using namespace events;
          if (!std::is_constant_evaluated()) {
-            if (event.asserts[events::summary::FAILED] || event.tests[events::summary::FAILED]) {
+            if (event.asserts[summary::FAILED] || event.tests[summary::FAILED]) {
                os << "\nFAILED: ";
             }
             else {
                os << "PASSED: ";
             }
-            os << "tests: " << (event.tests[events::summary::PASSED] + event.tests[events::summary::FAILED]) << " ("
-               << event.tests[events::summary::PASSED] << " passed, " << event.tests[events::summary::FAILED]
-               << " failed, " << event.tests[events::summary::COMPILE_TIME] << " compile-time), "
-               << "asserts: " << (event.asserts[events::summary::PASSED] + event.asserts[events::summary::FAILED])
-               << " (" << event.asserts[events::summary::PASSED] << " passed, "
-               << event.asserts[events::summary::FAILED] << " failed)\n";
+            os << "tests: " << (event.tests[summary::PASSED] + event.tests[summary::FAILED]) << " ("
+               << event.tests[summary::PASSED] << " passed, " << event.tests[summary::FAILED]
+               << " failed, " << event.tests[summary::COMPILE_TIME] << " compile-time), "
+               << "asserts: " << (event.asserts[summary::PASSED] + event.asserts[summary::FAILED])
+               << " (" << event.asserts[summary::PASSED] << " passed, "
+               << event.asserts[summary::FAILED] << " failed)\n";
          }
       }
 
-      TOStream& os;
+      OStream& os;
       events::test_begin<events::mode::run_time> current_test{};
       char initial_new_line{};
    };
