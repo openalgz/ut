@@ -67,19 +67,15 @@ namespace ut
          std::string_view name{};
          enum { FAILED, PASSED, COMPILE_TIME } result{};
       };
-      template <class Expr>
       struct assert_pass
       {
          std::string_view file_name{};
          int line{};
-         Expr expr{};
       };
-      template <class Expr>
       struct assert_fail
       {
          std::string_view file_name{};
          int line{};
-         Expr expr{};
       };
       struct fatal
       {};
@@ -107,11 +103,9 @@ namespace ut
       template <events::mode Mode>
       constexpr auto on(const events::test_end<Mode>&)
       {}
-      template <class Expr>
-      constexpr auto on(const events::assert_pass<Expr>&)
+      constexpr auto on(const events::assert_pass&)
       {}
-      template <class Expr>
-      constexpr auto on(const events::assert_fail<Expr>& event)
+      constexpr auto on(const events::assert_fail& event)
       {
          if (!std::is_constant_evaluated()) {
             if (initial_new_line == '\n') {
@@ -127,7 +121,6 @@ namespace ut
                os << "...";
             }
             os << event.file_name.substr(start, n) << ":" << event.line << '\n';
-            os << event.expr << '\n';
          }
       }
       constexpr auto on(const events::fatal&) {}
@@ -183,14 +176,12 @@ namespace ut
          ++summary.tests[events::summary::COMPILE_TIME];
       }
       constexpr auto on(const events::test_end<events::mode::compile_time>&) {}
-      template <class Expr>
-      constexpr auto on(const events::assert_pass<Expr>& event)
+      constexpr auto on(const events::assert_pass& event)
       {
          ++summary.asserts[events::summary::PASSED];
          outputter.on(event);
       }
-      template <class Expr>
-      constexpr auto on(const events::assert_fail<Expr>& event)
+      constexpr auto on(const events::assert_fail& event)
       {
          ++summary.asserts[events::summary::FAILED];
          outputter.on(event);
@@ -307,43 +298,37 @@ namespace ut
 
    constexpr struct
    {
-      template <class Expr>
-         requires (std::same_as<std::decay_t<Expr>, bool> || requires { static_cast<bool>(std::declval<Expr>()); })
-      constexpr auto operator()(Expr expr, const char* file_name = __builtin_FILE(), int line = __builtin_LINE()) const
+      constexpr auto operator()(const bool result, const char* file_name = __builtin_FILE(), int line = __builtin_LINE()) const
       {
-         bool result{};
-         if (result = static_cast<bool>(expr); std::is_constant_evaluated()) {
+         if (std::is_constant_evaluated()) {
             if (!result) {
                detail::failed();
             }
          }
          else if (result) {
-            detail::cfg(expr).reporter.on(events::assert_pass<Expr>{file_name, line, expr});
+            detail::cfg(result).reporter.on(events::assert_pass{file_name, line});
          }
          else {
-            detail::cfg(expr).reporter.on(events::assert_fail<Expr>{file_name, line, expr});
+            detail::cfg(result).reporter.on(events::assert_fail{file_name, line});
          }
          return log{result};
       }
 
       struct fatal_expr
       {
-         template <class Expr>
-            requires (std::same_as<std::decay_t<Expr>, bool> || requires { static_cast<bool>(std::declval<Expr>()); })
-         constexpr fatal_expr(Expr expr, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
+         constexpr fatal_expr(const bool result, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
          {
-            bool result{};
-            if (result = static_cast<bool>(expr); std::is_constant_evaluated()) {
+            if (std::is_constant_evaluated()) {
                if (!result) {
                   detail::failed();
                }
             }
             else if (result) {
-               detail::cfg(expr).reporter.on(events::assert_pass<Expr>{file_name, line, expr});
+               detail::cfg(result).reporter.on(events::assert_pass{file_name, line});
             }
             else {
-               detail::cfg(expr).reporter.on(events::assert_fail<Expr>{file_name, line, expr});
-               detail::cfg(expr).reporter.on(events::fatal{});
+               detail::cfg(result).reporter.on(events::assert_fail{file_name, line});
+               detail::cfg(result).reporter.on(events::fatal{});
             }
          }
          bool result{};
