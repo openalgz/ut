@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <concepts>
+#include <iostream>
 #include <source_location>
 #include <string_view>
 
@@ -367,17 +368,16 @@ namespace ut
 
    struct suite final
    {
-      template <class Tests>
-      suite(Tests tests)
+      suite(auto&& tests)
       {
          tests();
-      } // not constexpr
+      }
    };
 
    namespace detail
    {
       template <detail::fixed_string Name>
-      struct test
+      struct test final
       {
          struct run
          {
