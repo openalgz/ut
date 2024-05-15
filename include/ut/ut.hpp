@@ -59,7 +59,7 @@ namespace ut
       {
          std::string_view file_name{};
          int line{};
-         const char* name{};
+         std::string_view name{};
       };
       template <mode Mode>
       struct test_end
@@ -69,13 +69,9 @@ namespace ut
          std::string_view name{};
          enum { FAILED, PASSED, COMPILE_TIME } result{};
       };
-      struct assert_pass
+      struct assertion
       {
-         std::string_view file_name{};
-         int line{};
-      };
-      struct assert_fail
-      {
+         bool passed{};
          std::string_view file_name{};
          int line{};
       };
@@ -105,11 +101,10 @@ namespace ut
       template <events::mode Mode>
       constexpr auto on(const events::test_end<Mode>&)
       {}
-      constexpr auto on(const events::assert_pass&)
-      {}
-      constexpr auto on(const events::assert_fail& event)
+      constexpr auto on(const events::assertion& event)
       {
-         if (!std::is_constant_evaluated()) {
+         if (not event.passed && not std::is_constant_evaluated())
+         {
             if (initial_new_line == '\n') {
                os << initial_new_line;
             }
@@ -178,14 +173,14 @@ namespace ut
          ++summary.tests[events::summary::COMPILE_TIME];
       }
       constexpr auto on(const events::test_end<events::mode::compile_time>&) {}
-      constexpr auto on(const events::assert_pass& event)
+      constexpr auto on(const events::assertion& event)
       {
-         ++summary.asserts[events::summary::PASSED];
-         outputter.on(event);
-      }
-      constexpr auto on(const events::assert_fail& event)
-      {
-         ++summary.asserts[events::summary::FAILED];
+         if (event.passed) {
+            ++summary.asserts[events::summary::PASSED];
+         }
+         else {
+            ++summary.asserts[events::summary::FAILED];
+         }
          outputter.on(event);
       }
       constexpr auto on(const events::fatal& event)
@@ -298,48 +293,44 @@ namespace ut
    constexpr struct
    {
       template <bool Fatal>
-      struct evaluate
+      struct eval
       {
-         constexpr evaluate(const bool result, const char* file_name = __builtin_FILE(), int line = __builtin_LINE()) : result(result)
+         constexpr eval(const bool passed, const char* file_name = __builtin_FILE(), int line = __builtin_LINE()) : passed(passed)
          {
-            if (std::is_constant_evaluated()) {
-               if (!result) {
-                  detail::failed();
-               }
+            if (std::is_constant_evaluated() && not passed) {
+               detail::failed();
             }
-            else if (result) {
-               detail::cfg(result).reporter.on(events::assert_pass{file_name, line});
-            }
-            else {
-               detail::cfg(result).reporter.on(events::assert_fail{file_name, line});
+            detail::cfg(passed).reporter.on(events::assertion{passed, file_name, line});
+            if (not passed) {
                if constexpr (Fatal) {
-                  detail::cfg(result).reporter.on(events::fatal{});
+                  detail::cfg(passed).reporter.on(events::fatal{});
                }
             }
          }
-         bool result{};
+         bool passed{};
       };
       
-      constexpr auto operator()(evaluate<not detail::fatal> e) const
+      constexpr auto operator()(eval<not detail::fatal> e) const
       {
-         return log{e.result};
+         return log{e.passed};
       }
       
-      constexpr auto operator[](evaluate<detail::fatal> e) const
+      constexpr auto operator[](eval<detail::fatal> e) const
       {
-         return log{e.result};
+         return log{e.passed};
       }
 
      private:
       struct log
       {
+         bool result{};
+         
          template <class Msg>
          constexpr const auto& operator<<(const Msg& msg) const
          {
             detail::cfg(msg).outputter.on(events::log<Msg>{msg, result});
             return *this;
          }
-         bool result{};
       };
    } expect{};
 
