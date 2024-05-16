@@ -245,8 +245,7 @@ namespace ut
 
 namespace ut
 {
-   template <class...>
-   struct default_cfg
+   inline struct
    {
       struct
       {
@@ -263,29 +262,7 @@ namespace ut
       ut::outputter<decltype(stream)> outputter{stream};
       ut::reporter<decltype(outputter)> reporter{outputter};
       ut::runner<decltype(reporter)> runner{reporter};
-   };
-
-   struct override
-   {};
-
-   /**
-    * Customization point to override the default configuration
-    *
-    * @code
-    * template<class... Ts> auto ut::cfg<ut::override, Ts...> = my_config{};
-    * @endcode
-    */
-   template <class... Ts>
-   inline default_cfg<Ts...> cfg{};
-
-   namespace detail
-   {
-      template <class... Ts>
-      [[nodiscard]] constexpr auto& cfg(Ts&&...)
-      {
-         return ut::cfg<typename detail::identity<override, Ts...>::type>;
-      }
-   }
+   } cfg;
 
    constexpr struct
    {
@@ -300,10 +277,11 @@ namespace ut
                }
             }
             else {
-               detail::cfg(passed).reporter.on(events::assertion{passed, file_name, line});
+               const auto& loc = std::source_location::current();
+               cfg.reporter.on(events::assertion{passed, loc.file_name(), loc.line()});
                if (not passed) {
                   if constexpr (Fatal) {
-                     detail::cfg(passed).reporter.on(events::fatal{});
+                     cfg.reporter.on(events::fatal{});
                   }
                }
             }
@@ -329,7 +307,7 @@ namespace ut
          template <class Msg>
          constexpr const auto& operator<<(const Msg& msg) const
          {
-            detail::cfg(msg).outputter.on(events::log<Msg>{msg, passed});
+            cfg.outputter.on(events::log<Msg>{msg, passed});
             return *this;
          }
       };
@@ -348,15 +326,10 @@ namespace ut
       template <detail::fixed_string Name>
       struct test final
       {
-         struct run
-         {
-            template <class T>
-            constexpr run(T test, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
-               : result{cfg(test).runner.on(test, file_name, line, Name.data())}
-            {}
-            bool result{};
-         };
-         constexpr auto operator=(run test) const { return test.result; }
+         constexpr auto operator=(auto test) const {
+            const auto& loc = std::source_location::current();
+            return cfg.runner.on(test, loc.file_name(), loc.line(), Name.data());
+         }
       };
    }
 
