@@ -292,7 +292,7 @@ namespace ut
       template <bool Fatal>
       struct eval final
       {
-         constexpr eval(const bool passed, const char* file_name = std::source_location::current().file_name(), uint_least32_t line = std::source_location::current().line()) : passed(passed)
+         constexpr eval(const bool passed, const char* file_name = std::source_location::current().file_name(), const uint_least32_t line = std::source_location::current().line()) : passed(passed)
          {
             if (std::is_constant_evaluated()) {
                if (not passed) {
@@ -311,23 +311,9 @@ namespace ut
          bool passed{};
       };
       
-      /*constexpr auto operator()(eval<not detail::fatal> e) const
+      constexpr auto operator()(eval<not detail::fatal> e) const
       {
          return log{e.passed};
-      }*/
-      
-      constexpr auto operator()(const bool passed, const char* file_name = std::source_location::current().file_name(), uint_least32_t line = std::source_location::current().line()) const
-      {
-         if (std::is_constant_evaluated()) {
-            if (not passed) {
-               std::abort();
-            }
-         }
-         else {
-            detail::cfg(passed).reporter.on(events::assertion{passed, file_name, line});
-         }
-         
-         return log{passed};
       }
       
       constexpr auto operator[](eval<detail::fatal> e) const
@@ -362,19 +348,10 @@ namespace ut
       template <detail::fixed_string Name>
       struct test final
       {
-         struct run
-         {
-            /*template <class T>
-            constexpr run(T test, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
-               : result{cfg(test).runner.on(test, file_name, line, Name.data())}
-            {}*/
-            template <class T>
-            constexpr run(T test, const char* file_name = std::source_location::current().file_name(), uint_least32_t line = std::source_location::current().line())
-               : result{cfg(test).runner.on(test, file_name, line, Name.data())}
-            {}
-            bool result{};
-         };
-         constexpr auto operator=(run test) const { return test.result; }
+         constexpr auto operator=(auto test) const {
+            const auto& loc = std::source_location::current();
+            return cfg(test).runner.on(test, loc.file_name(), loc.line(), Name.data());
+         }
       };
    }
 
