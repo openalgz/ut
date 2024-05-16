@@ -290,7 +290,7 @@ namespace ut
    constexpr struct
    {
       template <bool Fatal>
-      struct eval
+      struct eval final
       {
          constexpr eval(const bool passed, const char* file_name = __builtin_FILE(), uint_least32_t line = __builtin_LINE()) : passed(passed)
          {
@@ -322,14 +322,14 @@ namespace ut
       }
 
      private:
-      struct log
+      struct log final
       {
-         bool result{};
+         bool passed{};
          
          template <class Msg>
          constexpr const auto& operator<<(const Msg& msg) const
          {
-            detail::cfg(msg).outputter.on(events::log<Msg>{msg, result});
+            detail::cfg(msg).outputter.on(events::log<Msg>{msg, passed});
             return *this;
          }
       };
