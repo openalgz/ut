@@ -269,7 +269,7 @@ namespace ut
       template <bool Fatal>
       struct eval final
       {
-         constexpr eval(const bool passed, const char* file_name = __builtin_FILE(), uint_least32_t line = __builtin_LINE()) : passed(passed)
+         constexpr eval(const bool passed) : passed(passed)
          {
             if (std::is_constant_evaluated()) {
                if (not passed) {
@@ -317,13 +317,15 @@ namespace ut
    {
       suite(auto&& tests)
       {
+         const auto& loc = std::source_location::current();
+         std::clog << loc.function_name() << '\n';
          tests();
       }
    };
 
    namespace detail
    {
-      template <detail::fixed_string Name>
+      template <fixed_string Name>
       struct test final
       {
          constexpr auto operator=(auto test) const {
