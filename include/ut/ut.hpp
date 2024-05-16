@@ -317,8 +317,6 @@ namespace ut
    {
       suite(auto&& tests)
       {
-         const auto& loc = std::source_location::current();
-         std::clog << loc.function_name() << '\n';
          tests();
       }
    };
