@@ -24,3 +24,5 @@ add_executable(${PROJECT_NAME}_ide ${sources} ${headers})
 target_link_libraries(${PROJECT_NAME}_ide PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
 
 set_target_properties(${PROJECT_NAME}_${PROJECT_NAME} ${PROJECT_NAME}_ide PROPERTIES FOLDER ProjectTargets)
+
+add_test(NAME ${PROJECT_NAME}_ide COMMAND ${PROJECT_NAME}_ide)
