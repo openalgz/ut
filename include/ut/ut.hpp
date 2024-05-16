@@ -292,7 +292,7 @@ namespace ut
       template <bool Fatal>
       struct eval final
       {
-         constexpr eval(const bool passed, const char* file_name = __builtin_FILE(), uint_least32_t line = __builtin_LINE()) : passed(passed)
+         constexpr eval(const bool passed) : passed(passed)
          {
             if (std::is_constant_evaluated()) {
                if (not passed) {
@@ -300,7 +300,8 @@ namespace ut
                }
             }
             else {
-               detail::cfg(passed).reporter.on(events::assertion{passed, file_name, line});
+               const auto& loc = std::source_location::current();
+               detail::cfg(passed).reporter.on(events::assertion{passed, loc.file_name(), loc.line()});
                if (not passed) {
                   if constexpr (Fatal) {
                      detail::cfg(passed).reporter.on(events::fatal{});
@@ -339,24 +340,21 @@ namespace ut
    {
       suite(auto&& tests)
       {
+         const auto& loc = std::source_location::current();
+         std::clog << loc.function_name() << '\n';
          tests();
       }
    };
 
    namespace detail
    {
-      template <detail::fixed_string Name>
+      template <fixed_string Name>
       struct test final
       {
-         struct run
-         {
-            template <class T>
-            constexpr run(T test, const char* file_name = __builtin_FILE(), int line = __builtin_LINE())
-               : result{cfg(test).runner.on(test, file_name, line, Name.data())}
-            {}
-            bool result{};
-         };
-         constexpr auto operator=(run test) const { return test.result; }
+         constexpr auto operator=(auto test) const {
+            const auto& loc = std::source_location::current();
+            return cfg(test).runner.on(test, loc.file_name(), loc.line(), Name.data());
+         }
       };
    }
 
