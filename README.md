@@ -19,3 +19,7 @@
 ### Requirements
 
 - C++20
+
+## Q&A
+
+- Why call this ut and use the same namespace? The purpose is for this library to be a subset of ut2 and allow swapping between the libraries.
