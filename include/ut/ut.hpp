@@ -340,13 +340,15 @@ namespace ut
    {
       suite(auto&& tests)
       {
+         const auto& loc = std::source_location::current();
+         std::clog << loc.function_name() << '\n';
          tests();
       }
    };
 
    namespace detail
    {
-      template <detail::fixed_string Name>
+      template <fixed_string Name>
       struct test final
       {
          constexpr auto operator=(auto test) const {
