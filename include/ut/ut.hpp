@@ -285,7 +285,6 @@ namespace ut
       {
          return ut::cfg<typename detail::identity<override, Ts...>::type>;
       }
-      void failed(); /// fail in constexpr context
    }
 
    constexpr struct
@@ -295,13 +294,17 @@ namespace ut
       {
          constexpr eval(const bool passed, const char* file_name = __builtin_FILE(), uint_least32_t line = __builtin_LINE()) : passed(passed)
          {
-            if (std::is_constant_evaluated() && not passed) {
-               detail::failed();
+            if (std::is_constant_evaluated()) {
+               if (not passed) {
+                  std::abort();
+               }
             }
-            detail::cfg(passed).reporter.on(events::assertion{passed, file_name, line});
-            if (not passed) {
-               if constexpr (Fatal) {
-                  detail::cfg(passed).reporter.on(events::fatal{});
+            else {
+               detail::cfg(passed).reporter.on(events::assertion{passed, file_name, line});
+               if (not passed) {
+                  if constexpr (Fatal) {
+                     detail::cfg(passed).reporter.on(events::fatal{});
+                  }
                }
             }
          }
