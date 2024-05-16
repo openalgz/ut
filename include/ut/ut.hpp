@@ -292,7 +292,7 @@ namespace ut
       template <bool Fatal>
       struct eval final
       {
-         constexpr eval(const bool passed, const char* file_name = std::source_location::current().file_name(), const uint_least32_t line = std::source_location::current().line()) : passed(passed)
+         constexpr eval(const bool passed) : passed(passed)
          {
             if (std::is_constant_evaluated()) {
                if (not passed) {
@@ -300,7 +300,8 @@ namespace ut
                }
             }
             else {
-               detail::cfg(passed).reporter.on(events::assertion{passed, file_name, line});
+               const auto& loc = std::source_location::current();
+               detail::cfg(passed).reporter.on(events::assertion{passed, loc.file_name(), loc.line()});
                if (not passed) {
                   if constexpr (Fatal) {
                      detail::cfg(passed).reporter.on(events::fatal{});
