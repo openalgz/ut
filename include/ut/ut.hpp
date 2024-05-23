@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <cstdlib>
-#include <cstdint>
 #include <concepts>
+#include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <source_location>
 #include <string_view>
@@ -17,14 +17,14 @@ namespace ut
    namespace detail
    {
       constexpr bool fatal = true;
-      
+
       template <class>
       constexpr auto is_mutable_lambda_v = false;
       template <class R, class B, class... Ts>
       constexpr auto is_mutable_lambda_v<R (B::*)(Ts...)> = true;
       template <class Fn>
       constexpr auto has_capture_lambda_v = sizeof(Fn) > 1ul;
-      
+
       template <class T, class...>
       struct identity
       {
@@ -101,8 +101,7 @@ namespace ut
       {}
       constexpr auto on(const events::assertion& event)
       {
-         if (not event.passed && not std::is_constant_evaluated())
-         {
+         if (not event.passed && not std::is_constant_evaluated()) {
             if (initial_new_line == '\n') {
                os << initial_new_line;
             }
@@ -137,11 +136,10 @@ namespace ut
                os << "\nPASSED\n";
             }
             os << "tests: " << (event.tests[summary::PASSED] + event.tests[summary::FAILED]) << " ("
-               << event.tests[summary::PASSED] << " passed, " << event.tests[summary::FAILED]
-               << " failed, " << event.tests[summary::COMPILE_TIME] << " compile-time)\n"
-               << "asserts: " << (event.asserts[summary::PASSED] + event.asserts[summary::FAILED])
-               << " (" << event.asserts[summary::PASSED] << " passed, "
-               << event.asserts[summary::FAILED] << " failed)\n";
+               << event.tests[summary::PASSED] << " passed, " << event.tests[summary::FAILED] << " failed, "
+               << event.tests[summary::COMPILE_TIME] << " compile-time)\n"
+               << "asserts: " << (event.asserts[summary::PASSED] + event.asserts[summary::FAILED]) << " ("
+               << event.asserts[summary::PASSED] << " passed, " << event.asserts[summary::FAILED] << " failed)\n";
          }
       }
 
@@ -288,22 +286,16 @@ namespace ut
          }
          bool passed{};
       };
-      
-      constexpr auto operator()(eval<not detail::fatal> e) const
-      {
-         return log{e.passed};
-      }
-      
-      constexpr auto operator[](eval<detail::fatal> e) const
-      {
-         return log{e.passed};
-      }
+
+      constexpr auto operator()(eval<not detail::fatal> e) const { return log{e.passed}; }
+
+      constexpr auto operator[](eval<detail::fatal> e) const { return log{e.passed}; }
 
      private:
       struct log final
       {
          bool passed{};
-         
+
          template <class Msg>
          constexpr const auto& operator<<(const Msg& msg) const
          {
@@ -315,10 +307,7 @@ namespace ut
 
    struct suite final
    {
-      suite(auto&& tests)
-      {
-         tests();
-      }
+      suite(auto&& tests) { tests(); }
    };
 
    namespace detail
@@ -326,7 +315,8 @@ namespace ut
       template <fixed_string Name>
       struct test final
       {
-         constexpr auto operator=(auto test) const {
+         constexpr auto operator=(auto test) const
+         {
             const auto& loc = std::source_location::current();
             return cfg.runner.on(test, loc.file_name(), loc.line(), Name.data());
          }
