@@ -26,4 +26,4 @@ jobs:
       with:
         message: 'Committing clang-format changes'
       env:
-        GITHUB_TOKEN: ${{ secrets.CLANG_FORMAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
