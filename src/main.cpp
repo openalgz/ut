@@ -8,7 +8,7 @@ suite tests = [] {
    "double"_test = [] {
       double v = 42.1;
       expect(42.1 == v) << "v is not 42.1";
-      expect[42.1 == v] << "oh no!";
+      expect[42.1 == v] << "a fatal error!";
    };
 
    "double mutable"_test = []() mutable {

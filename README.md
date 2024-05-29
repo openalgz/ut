@@ -6,6 +6,19 @@
 >
 > This library is only for those who want an extremely stripped down and basic unit test library.
 
+```c++
+#include "ut/ut.hpp"
+using namespace ut;
+suite tests = [] {
+   "double"_test = [] {
+      double v = 42.1;
+      expect(42.1 == v) << "v is not 42.1";
+      expect[42.1 == v] << "a fatal error!";
+   };
+};
+int main() {}
+```
+
 ## Three Tools
 
 1. `suite` - Write a collection of tests
