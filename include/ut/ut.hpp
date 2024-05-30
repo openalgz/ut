@@ -212,12 +212,12 @@ namespace ut
          -> bool
       {
          if (std::is_constant_evaluated()) {
-            if constexpr (!detail::is_mutable_lambda_v<decltype(&Test::operator())>) {
+            if constexpr (detail::is_mutable_lambda_v<decltype(&Test::operator())>) {
+               return false;
+            }
+            else {               
                test();
                return true;
-            }
-            else {
-               return false;
             }
          }
          else {
