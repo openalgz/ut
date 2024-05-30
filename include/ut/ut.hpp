@@ -321,6 +321,21 @@ namespace ut
             return cfg.runner.on(test, loc.file_name(), loc.line(), Name.data());
          }
       };
+      
+      struct runtime_test final
+      {
+         std::string_view name{};
+         
+         constexpr auto operator=(auto test) const
+         {
+            const auto& loc = std::source_location::current();
+            return cfg.runner.on(test, loc.file_name(), loc.line(), name.data());
+         }
+      };
+   }
+   
+   constexpr auto test(const std::string_view name) {
+      return detail::runtime_test{name};
    }
 
    template <detail::fixed_string Str>
