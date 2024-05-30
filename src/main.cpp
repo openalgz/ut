@@ -32,7 +32,7 @@ suite tests = [] {
       expect(v == "Hello World");
       expect[v == "Hello World"];
    };
-   
+
    test("runtime named test") = [] {
       std::string_view v = "Hello World";
       expect(v == "Hello World");
