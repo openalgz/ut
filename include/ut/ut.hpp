@@ -271,9 +271,11 @@ namespace ut
       template <bool Fatal>
       struct eval final
       {
+         std::source_location loc{};
+         
          template <class T>
             requires std::convertible_to<T, bool>
-         constexpr eval(T&& test_passed) : passed(static_cast<bool>(test_passed))
+         constexpr eval(T&& test_passed) : passed(static_cast<bool>(test_passed)), loc(std::source_location::current())
          {
             if (std::is_constant_evaluated()) {
                if (not passed) {
@@ -281,7 +283,6 @@ namespace ut
                }
             }
             else {
-               const auto& loc = std::source_location::current();
                cfg.reporter.on(events::assertion{passed, loc.file_name(), loc.line()});
                if (not passed) {
                   if constexpr (Fatal) {
