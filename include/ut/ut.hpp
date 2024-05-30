@@ -215,7 +215,7 @@ namespace ut
             if constexpr (detail::is_mutable_lambda_v<decltype(&Test::operator())>) {
                return false;
             }
-            else {               
+            else {
                test();
                return true;
             }
