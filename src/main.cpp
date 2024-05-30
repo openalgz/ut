@@ -6,15 +6,15 @@ using namespace ut;
 #include <string_view>
 
 suite tests = [] {
-   "double"_test = []() mutable {
+   "double"_test = [] {
       double v = 42.1;
-      expect(42.1 != v) << "v is not 42.1";
-      // expect[42.1 == v] << "a fatal error!";
+      expect(42.1 == v) << "v is not 42.1";
+      expect[42.1 == v] << "a fatal error!";
    };
 
-   /*"double mutable"_test = []() mutable {
+   "double mutable"_test = []() mutable {
       double v = 42.1;
-      expect(42.1 != v) << "v is not 42.1";
+      expect(42.1 == v) << "v is not 42.1";
       expect[42.1 == v] << "oh no!";
    };
 
@@ -42,7 +42,7 @@ suite tests = [] {
 
    "throws"_test = []() mutable { expect(throws([] { throw std::runtime_error("I throw!"); })); };
 
-   "no throw"_test = []() mutable { expect(not throws([] { return 55; })); };*/
+   "no throw"_test = []() mutable { expect(not throws([] { return 55; })); };
 };
 
 struct boolean_type
@@ -52,6 +52,6 @@ struct boolean_type
    operator bool() const { return b; }
 };
 
-// suite bool_convertible = [] { "boolean_type"_test = []() mutable { expect(boolean_type{}); }; };
+suite bool_convertible = [] { "boolean_type"_test = []() mutable { expect(boolean_type{}); }; };
 
 int main() {}
