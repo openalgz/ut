@@ -294,7 +294,10 @@ namespace ut
 
       template <class T>
          requires std::convertible_to<T, bool>
-      constexpr auto operator()(T&& test_passed, const std::source_location& s = std::source_location::current()) const { return log{eval<not detail::fatal>{test_passed, s}.passed}; }
+      constexpr auto operator()(T&& test_passed, const std::source_location& s = std::source_location::current()) const
+      {
+         return log{eval<not detail::fatal>{test_passed, s}.passed};
+      }
 
       constexpr auto operator[](eval<detail::fatal> e) const { return log{e.passed}; }
 

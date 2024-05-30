@@ -9,7 +9,7 @@ suite tests = [] {
    "double"_test = []() mutable {
       double v = 42.1;
       expect(42.1 != v) << "v is not 42.1";
-      //expect[42.1 == v] << "a fatal error!";
+      // expect[42.1 == v] << "a fatal error!";
    };
 
    /*"double mutable"_test = []() mutable {
@@ -52,6 +52,6 @@ struct boolean_type
    operator bool() const { return b; }
 };
 
-//suite bool_convertible = [] { "boolean_type"_test = []() mutable { expect(boolean_type{}); }; };
+// suite bool_convertible = [] { "boolean_type"_test = []() mutable { expect(boolean_type{}); }; };
 
 int main() {}
