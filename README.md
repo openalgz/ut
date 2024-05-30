@@ -6,24 +6,13 @@
 >
 > This library is only for those who want an extremely stripped down and basic unit test library.
 
-```c++
-#include "ut/ut.hpp"
-using namespace ut;
-suite tests = [] {
-   "double"_test = [] {
-      double v = 42.1;
-      expect(42.1 == v) << "v is not 42.1";
-      expect[42.1 == v] << "a fatal error!";
-   };
-};
-int main() {}
-```
+## Tools
 
-## Three Tools
-
-1. `suite` - Write a collection of tests
-2. `_test` - Declare a test
-3. `expect` - Check a boolean
+- `suite` - Write a collection of tests
+- `"name"_test` - Declare a test
+- `test("name")` - Declare a test with a runtime name
+- `expect` - Check a boolean
+- `throws(func)` - Require a call to throw
 
 ### Features
 
