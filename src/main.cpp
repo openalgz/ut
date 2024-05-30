@@ -2,6 +2,7 @@
 
 using namespace ut;
 
+#include <exception>
 #include <string_view>
 
 suite tests = [] {
@@ -37,6 +38,18 @@ suite tests = [] {
       std::string_view v = "Hello World";
       expect(v == "Hello World");
       expect[v == "Hello World"];
+   };
+   
+   "throws"_test = []() mutable {
+      expect(throws([] {
+         throw std::runtime_error("I throw!");
+      }));
+   };
+   
+   "no throw"_test = []() mutable {
+      expect(not throws([] {
+         return 55;
+      }));
    };
 };
 

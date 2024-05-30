@@ -341,6 +341,19 @@ namespace ut
    {
       return detail::test<Str>{};
    }
+   
+#if __cpp_exceptions
+   template <class Callable, class... Args>
+   constexpr auto throws(Callable&& c, Args&&... args) {
+      try {
+         std::forward<Callable>(c)(std::forward<Args>(args)...);
+      }
+      catch (...) {
+         return true;
+      }
+      return false;
+   }
+#endif
 }
 
 using ut::operator""_test;
