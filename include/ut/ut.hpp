@@ -267,7 +267,9 @@ namespace ut
       template <bool Fatal>
       struct eval final
       {
-         constexpr eval(const bool passed) : passed(passed)
+         template <class T>
+            requires std::convertible_to<T, bool>
+         constexpr eval(T&& test_passed) : passed(static_cast<bool>(test_passed))
          {
             if (std::is_constant_evaluated()) {
                if (not passed) {
