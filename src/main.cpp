@@ -8,7 +8,7 @@ using namespace ut;
 suite tests = [] {
    "double"_test = [] {
       double v = 42.1;
-      expect(42.1 == v) << "v is not 42.1";
+      expect(42.1 != v) << "v is not 42.1";
       expect[42.1 == v] << "a fatal error!";
    };
 
