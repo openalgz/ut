@@ -23,7 +23,7 @@ namespace ut
       template <class R, class B, class... Ts>
       constexpr auto is_mutable_lambda_v<R (B::*)(Ts...)> = true;
       template <class R, class B, class... Ts>
-      constexpr auto is_mutable_lambda_v<R (B::*)(Ts...) const> = true;
+      constexpr auto is_mutable_lambda_v<R (B::*)(Ts...) const> = false;
       template <class Fn>
       constexpr auto has_capture_lambda_v = sizeof(Fn) > 1ul;
 
