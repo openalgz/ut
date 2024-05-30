@@ -4,7 +4,7 @@ include(cmake/prelude.cmake)
 
 project(
     ut
-    VERSION 0.0.1
+    VERSION 0.0.2
     LANGUAGES CXX
 )
 
