@@ -42,6 +42,7 @@ namespace ut
          [[nodiscard]] constexpr auto operator[](const auto i) const { return storage[i]; }
          [[nodiscard]] constexpr auto data() const { return storage; }
          [[nodiscard]] static constexpr auto size() { return Size; }
+         [[nodiscard]] constexpr operator std::string_view() const { return { storage, Size}; }
          constexpr friend auto operator<<(auto& os, const fixed_string& fs) -> decltype(auto)
          {
             return os << fs.storage;
@@ -207,7 +208,7 @@ namespace ut
    struct runner
    {
       template <class Test>
-      constexpr auto on(Test test, const char* file_name, uint_least32_t line, const char* name) -> bool
+      constexpr auto on(Test test, const std::string_view file_name, uint_least32_t line, const std::string_view name) -> bool
       {
          if (std::is_constant_evaluated()) {
             if constexpr (!detail::is_mutable_lambda_v<decltype(&Test::operator())>) {
@@ -320,7 +321,7 @@ namespace ut
          constexpr auto operator=(auto test) const
          {
             const auto& loc = std::source_location::current();
-            return cfg.runner.on(test, loc.file_name(), loc.line(), Name.data());
+            return cfg.runner.on(test, loc.file_name(), loc.line(), Name);
          }
       };
 
@@ -331,7 +332,7 @@ namespace ut
          constexpr auto operator=(auto test) const
          {
             const auto& loc = std::source_location::current();
-            return cfg.runner.on(test, loc.file_name(), loc.line(), name.data());
+            return cfg.runner.on(test, loc.file_name(), loc.line(), name);
          }
       };
    }
