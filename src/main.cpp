@@ -39,18 +39,10 @@ suite tests = [] {
       expect(v == "Hello World");
       expect[v == "Hello World"];
    };
-   
-   "throws"_test = []() mutable {
-      expect(throws([] {
-         throw std::runtime_error("I throw!");
-      }));
-   };
-   
-   "no throw"_test = []() mutable {
-      expect(not throws([] {
-         return 55;
-      }));
-   };
+
+   "throws"_test = []() mutable { expect(throws([] { throw std::runtime_error("I throw!"); })); };
+
+   "no throw"_test = []() mutable { expect(not throws([] { return 55; })); };
 };
 
 int main() {}
