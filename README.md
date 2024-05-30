@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]
 >
-> **This is a simplification of [boost-ext ut2](https://github.com/boost-ext/ut2). Go use that library.**
+> **This is a simplification of [boost-ext ut2](https://github.com/boost-ext/ut2) with some added functionality from [boost-ext ut](https://github.com/boost-ext/ut).**
 >
 > This library is only for those who want an extremely stripped down and basic unit test library.
 
