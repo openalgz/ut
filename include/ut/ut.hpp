@@ -272,7 +272,7 @@ namespace ut
       struct eval final
       {
          std::source_location loc{};
-         
+
          template <class T>
             requires std::convertible_to<T, bool>
          constexpr eval(T&& test_passed) : passed(static_cast<bool>(test_passed)), loc(std::source_location::current())
