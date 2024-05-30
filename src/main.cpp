@@ -14,7 +14,7 @@ suite tests = [] {
 
    "double mutable"_test = []() mutable {
       double v = 42.1;
-      expect(42.1 != v) << "v is not 42.1";
+      expect(42.1 == v) << "v is not 42.1";
       expect[42.1 == v] << "oh no!";
    };
 
