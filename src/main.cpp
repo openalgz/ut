@@ -48,16 +48,10 @@ suite tests = [] {
 struct boolean_type
 {
    bool b = true;
-   
-   operator bool() const {
-      return b;
-   }
+
+   operator bool() const { return b; }
 };
 
-suite bool_convertible = [] {
-   "boolean_type"_test = []() mutable {
-      expect(boolean_type{});
-   };
-};
+suite bool_convertible = [] { "boolean_type"_test = []() mutable { expect(boolean_type{}); }; };
 
 int main() {}
