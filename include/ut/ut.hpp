@@ -214,7 +214,7 @@ namespace ut
          -> bool
       {
          if (std::is_constant_evaluated()) {
-            if constexpr (detail::is_mutable_lambda_v<decltype(&Test::operator())>) {
+            if constexpr (requires{ requires detail::is_mutable_lambda_v<decltype(&Test::operator())>; }) {
                return false;
             }
             else {
@@ -224,7 +224,7 @@ namespace ut
          }
          else {
 #if !defined(UT_RUN_TIME_ONLY)
-            if constexpr (!detail::is_mutable_lambda_v<decltype(&Test::operator())> &&
+            if constexpr (!requires{ requires detail::is_mutable_lambda_v<decltype(&Test::operator())>; } &&
                           !detail::has_capture_lambda_v<Test>) {
                reporter.on(events::test_begin<events::mode::compile_time>{file_name, line, name});
                static_assert((test(), "[FAILED]"));
