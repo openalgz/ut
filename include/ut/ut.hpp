@@ -187,7 +187,7 @@ namespace ut
          ++summary.tests[events::summary::FAILED];
          outputter.on(event);
          outputter.on(summary);
-         std::abort();
+         std::exit(1);
       }
 
 #if !defined(UT_COMPILE_TIME_ONLY)
@@ -195,7 +195,7 @@ namespace ut
       { // non constexpr
          outputter.on(summary);
          if (summary.asserts[events::summary::FAILED]) {
-            std::abort();
+            std::exit(1);
          }
       }
 #endif
