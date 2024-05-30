@@ -273,7 +273,8 @@ namespace ut
       {
          template <class T>
             requires std::convertible_to<T, bool>
-         constexpr eval(T&& test_passed, const std::source_location& loc = std::source_location::current()) : passed(static_cast<bool>(test_passed))
+         constexpr eval(T&& test_passed, const std::source_location& loc = std::source_location::current())
+            : passed(static_cast<bool>(test_passed))
          {
             if (std::is_constant_evaluated()) {
                if (not passed) {
@@ -294,11 +295,17 @@ namespace ut
 
       template <class T>
          requires std::convertible_to<T, bool>
-      constexpr auto operator()(T&& test_passed) const { return log{eval<not detail::fatal>{test_passed}.passed}; }
+      constexpr auto operator()(T&& test_passed) const
+      {
+         return log{eval<not detail::fatal>{test_passed}.passed};
+      }
 
       template <class T>
          requires std::convertible_to<T, bool>
-      constexpr auto operator[](T&& test_passed) const { return log{eval<detail::fatal>{test_passed}.passed}; }
+      constexpr auto operator[](T&& test_passed) const
+      {
+         return log{eval<detail::fatal>{test_passed}.passed};
+      }
 
      private:
       struct log final
