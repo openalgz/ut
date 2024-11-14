@@ -190,7 +190,6 @@ namespace ut
          std::exit(1);
       }
 
-#if !defined(UT_COMPILE_TIME_ONLY)
       ~reporter()
       { // non constexpr
          outputter.on(summary);
@@ -198,7 +197,6 @@ namespace ut
             std::exit(1);
          }
       }
-#endif
 
       Outputter& outputter;
       events::summary summary{};
@@ -223,7 +221,7 @@ namespace ut
             }
          }
          else {
-#if !defined(UT_RUN_TIME_ONLY)
+#if defined(UT_COMPILE_TIME)
             if constexpr (!requires { requires detail::is_mutable_lambda_v<decltype(&Test::operator())>; } &&
                           !detail::has_capture_lambda_v<Test>) {
                reporter.on(events::test_begin<events::mode::compile_time>{file_name, line, name});
@@ -232,11 +230,9 @@ namespace ut
             }
 #endif
 
-#if !defined(UT_COMPILE_TIME_ONLY)
             reporter.on(events::test_begin<events::mode::run_time>{file_name, line, name});
             test();
             reporter.on(events::test_end<events::mode::run_time>{file_name, line, name});
-#endif
          }
          return true;
       }
@@ -253,12 +249,8 @@ namespace ut
       {
          friend constexpr decltype(auto) operator<<([[maybe_unused]] auto& os, [[maybe_unused]] const auto& t)
          {
-#if defined(UT_COMPILE_TIME_ONLY)
-            return os;
-#else
             static_assert(requires { std::clog << t; });
             return (std::clog << t);
-#endif
          }
       } stream;
       ut::outputter<decltype(stream)> outputter{stream};

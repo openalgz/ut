@@ -1,10 +1,6 @@
 ## UT: run-time and compile-time C++ unit-testing
 
-> [!IMPORTANT]
->
-> **This is a simplification of [boost-ext ut2](https://github.com/boost-ext/ut2) with some added functionality from [boost-ext ut](https://github.com/boost-ext/ut).**
->
-> This library is only for those who want an extremely stripped down and basic unit test library.
+A simple and fast compiling unit test library.
 
 ## Tools
 
@@ -17,6 +13,10 @@
 ### Features
 
 - Single header
+
+To enable compile time testing you must define the macro: `UT_COMPILE_TIME`
+
+Runtime testing is always enabled.
 
 ### Requirements
 
@@ -71,7 +71,3 @@ suite tests = [] {
 
 int main() {}
 ```
-
-## Q&A
-
-- Why call this ut and use the same namespace? The purpose is for this library to be a subset of ut2 and allow swapping between the libraries.

@@ -1,3 +1,5 @@
+#define UT_COMPILE_TIME
+
 #include "ut/ut.hpp"
 
 using namespace ut;
@@ -12,6 +14,7 @@ suite tests = [] {
       expect[42.1 == v] << "a fatal error!";
    };
 
+   // a runtime-only test because the lambda is mutable
    "double mutable"_test = []() mutable {
       double v = 42.1;
       expect(42.1 == v) << "v is not 42.1";
@@ -23,6 +26,7 @@ suite tests = [] {
       expect[5 + 4 == 9] << "fatal";
    };
 
+   // a compile-time only test because the lambda is consteval
    "int consteval"_test = []() consteval {
       expect(5 + 4 == 9) << "bad";
       expect[5 + 4 == 9] << "fatal";
