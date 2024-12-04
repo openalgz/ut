@@ -1,7 +1,24 @@
+// Openaglz UT (Unit Test) library
+
 // Refactored from:
 // Copyright (c) 2024 Kris Jusiak (kris at jusiak dot net)
 // Distributed under the Boost Software License, Version 1.0.
 // (See http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef UT_DISABLE_MODULE
+
+module;
+
+#include <concepts>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+#include <source_location>
+#include <string_view>
+
+export module ut;
+
+#else
 
 #pragma once
 
@@ -12,7 +29,15 @@
 #include <source_location>
 #include <string_view>
 
-namespace ut
+#endif
+
+#ifndef UT_DISABLE_MODULE
+#define UT_EXPORT export
+#else
+#define UT_EXPORT
+#endif
+
+UT_EXPORT namespace ut
 {
    namespace detail
    {
@@ -32,7 +57,8 @@ namespace ut
       {
          using type = T;
       };
-      template <size_t Size>
+
+      UT_EXPORT template <size_t Size>
       struct fixed_string
       {
          constexpr fixed_string(const char (&str)[Size])
@@ -52,6 +78,7 @@ namespace ut
          char storage[Size]{};
       };
    }
+
    namespace events
    {
       enum class mode { run_time, compile_time };
@@ -88,7 +115,7 @@ namespace ut
       {
          enum { FAILED, PASSED, COMPILE_TIME };
          size_t asserts[2]{}; /* FAILED, PASSED */
-         size_t tests[3]{}; /* FAILED, PASSED, COMPILE_TIME */
+         size_t tests[3]{};   /* FAILED, PASSED, COMPILE_TIME */
       };
    } // namespace events
 
@@ -191,7 +218,7 @@ namespace ut
       }
 
       ~reporter()
-      { // non constexpr
+      { // non-constexpr
          outputter.on(summary);
          if (summary.asserts[events::summary::FAILED]) {
             std::exit(1);
@@ -241,139 +268,136 @@ namespace ut
    };
 }
 
-namespace ut
+UT_EXPORT inline struct
 {
-   inline struct
+   struct
    {
-      struct
+      friend constexpr decltype(auto) operator<<([[maybe_unused]] auto& os, [[maybe_unused]] const auto& t)
       {
-         friend constexpr decltype(auto) operator<<([[maybe_unused]] auto& os, [[maybe_unused]] const auto& t)
-         {
-            static_assert(requires { std::clog << t; });
-            return (std::clog << t);
-         }
-      } stream;
-      ut::outputter<decltype(stream)> outputter{stream};
-      ut::reporter<decltype(outputter)> reporter{outputter};
-      ut::runner<decltype(reporter)> runner{reporter};
-   } cfg;
+         static_assert(requires { std::clog << t; });
+         return (std::clog << t);
+      }
+   } stream;
+   ut::outputter<decltype(stream)> outputter{stream};
+   ut::reporter<decltype(outputter)> reporter{outputter};
+   ut::runner<decltype(reporter)> runner{reporter};
+} cfg;
 
-   constexpr struct
+UT_EXPORT constexpr struct
+{
+   template <bool Fatal>
+   struct eval final
    {
-      template <bool Fatal>
-      struct eval final
+      template <class T>
+         requires std::convertible_to<T, bool>
+      constexpr eval(T&& test_passed, auto&& loc) : passed(static_cast<bool>(test_passed))
       {
-         template <class T>
-            requires std::convertible_to<T, bool>
-         constexpr eval(T&& test_passed, auto&& loc) : passed(static_cast<bool>(test_passed))
-         {
-            if (std::is_constant_evaluated()) {
-               if (not passed) {
-                  std::abort();
-               }
+         if (std::is_constant_evaluated()) {
+            if (not passed) {
+               std::abort();
             }
-            else {
-               cfg.reporter.on(events::assertion{passed, loc.file_name(), loc.line()});
-               if (not passed) {
-                  if constexpr (Fatal) {
-                     cfg.reporter.on(events::fatal{});
-                  }
+         }
+         else {
+            cfg.reporter.on(ut::events::assertion{passed, loc.file_name(), loc.line()});
+            if (not passed) {
+               if constexpr (Fatal) {
+                  cfg.reporter.on(ut::events::fatal{});
                }
             }
          }
-         bool passed{};
-      };
-
-      template <class T>
-         requires std::convertible_to<T, bool>
-      constexpr auto operator()(T&& test_passed,
-                                const std::source_location& loc = std::source_location::current()) const
-      {
-         return log{eval<not detail::fatal>{test_passed, loc}.passed};
       }
-
-#if __cplusplus >= 202300L
-      // if we have C++23
-      template <class T>
-         requires std::convertible_to<T, bool>
-      constexpr auto operator[](T&& test_passed,
-                                const std::source_location& loc = std::source_location::current()) const
-      {
-         return log{eval<detail::fatal>{test_passed, loc}.passed};
-      }
-#else
-      template <class T>
-         requires std::convertible_to<T, bool>
-      constexpr auto operator[](T&& test_passed) const
-      {
-         return log{eval<detail::fatal>{test_passed, std::source_location::current()}.passed};
-      }
-#endif
-
-     private:
-      struct log final
-      {
-         bool passed{};
-
-         template <class Msg>
-         constexpr const auto& operator<<(const Msg& msg) const
-         {
-            cfg.outputter.on(events::log<Msg>{msg, passed});
-            return *this;
-         }
-      };
-   } expect{};
-
-   struct suite final
-   {
-      suite(auto&& tests) { tests(); }
+      bool passed{};
    };
 
-   namespace detail
+   template <class T>
+      requires std::convertible_to<T, bool>
+   constexpr auto operator()(T&& test_passed,
+                             const std::source_location& loc = std::source_location::current()) const
    {
-      template <fixed_string Name>
-      struct test final
-      {
-         constexpr auto operator=(auto test) const
-         {
-            const auto& loc = std::source_location::current();
-            return cfg.runner.on(test, loc.file_name(), loc.line(), Name);
-         }
-      };
-
-      struct runtime_test final
-      {
-         std::string_view name{};
-
-         constexpr auto operator=(auto test) const
-         {
-            const auto& loc = std::source_location::current();
-            return cfg.runner.on(test, loc.file_name(), loc.line(), name);
-         }
-      };
+      return log{eval<not ut::detail::fatal>{test_passed, loc}.passed};
    }
 
-   constexpr auto test(const std::string_view name) { return detail::runtime_test{name}; }
-
-   template <detail::fixed_string Str>
-   [[nodiscard]] constexpr auto operator""_test()
+#if __cplusplus >= 202300L
+   // if we have C++23
+   template <class T>
+      requires std::convertible_to<T, bool>
+   constexpr auto operator[](T&& test_passed,
+                             const std::source_location& loc = std::source_location::current()) const
    {
-      return detail::test<Str>{};
+      return log{eval<ut::detail::fatal>{test_passed, loc}.passed};
    }
-
-#if __cpp_exceptions
-   template <class Callable, class... Args>
-   constexpr auto throws(Callable&& c, Args&&... args)
+#else
+   template <class T>
+      requires std::convertible_to<T, bool>
+   constexpr auto operator[](T&& test_passed) const
    {
-      try {
-         std::forward<Callable>(c)(std::forward<Args>(args)...);
-      }
-      catch (...) {
-         return true;
-      }
-      return false;
+      return log{eval<ut::detail::fatal>{test_passed, std::source_location::current()}.passed};
    }
 #endif
+
+ private:
+   struct log final
+   {
+      bool passed{};
+
+      template <class Msg>
+      constexpr const auto& operator<<(const Msg& msg) const
+      {
+         cfg.outputter.on(ut::events::log<Msg>{msg, passed});
+         return *this;
+      }
+   };
+} expect{};
+
+UT_EXPORT struct suite final
+{
+   suite(auto&& tests) { tests(); }
+};
+
+namespace ut::detail
+{
+   UT_EXPORT template <fixed_string Name>
+   struct test final
+   {
+      constexpr auto operator=(auto test) const
+      {
+         const auto& loc = std::source_location::current();
+         return cfg.runner.on(test, loc.file_name(), loc.line(), Name);
+      }
+   };
+
+   UT_EXPORT struct runtime_test final
+   {
+      std::string_view name{};
+
+      constexpr auto operator=(auto test) const
+      {
+         const auto& loc = std::source_location::current();
+         return cfg.runner.on(test, loc.file_name(), loc.line(), name);
+      }
+   };
 }
 
-using ut::operator""_test;
+UT_EXPORT constexpr auto test(const std::string_view name) { return ut::detail::runtime_test{name}; }
+
+UT_EXPORT template <ut::detail::fixed_string Str>
+[[nodiscard]] constexpr auto operator""_test()
+{
+   return ut::detail::test<Str>{};
+}
+
+#if __cpp_exceptions
+UT_EXPORT template <class Callable, class... Args>
+constexpr auto throws(Callable&& c, Args&&... args)
+{
+   try {
+      std::forward<Callable>(c)(std::forward<Args>(args)...);
+   }
+   catch (...) {
+      return true;
+   }
+   return false;
+}
+#endif
+
+UT_EXPORT using ut::operator""_test;

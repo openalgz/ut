@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.24)
+# Update the minimum required CMake version to at least 3.25 for module support
+cmake_minimum_required(VERSION 3.30)
 
 include(cmake/prelude.cmake)
 
@@ -11,27 +12,73 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-add_library(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE)
+# Detect compiler support for C++20 modules
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-fmodules-ts" COMPILER_SUPPORTS_MODULES_TS)
+check_cxx_compiler_flag("/interface" COMPILER_SUPPORTS_MSVC_MODULES)
+
+# Define a variable to determine if modules are supported
+if (COMPILER_SUPPORTS_MODULES_TS OR COMPILER_SUPPORTS_MSVC_MODULES)
+    set(UT_ENABLE_MODULES ON)
+else()
+    set(UT_ENABLE_MODULES OFF)
+endif()
+
+# Add the library target; use STATIC instead of INTERFACE to allow module interface compilation
+add_library(${PROJECT_NAME}_${PROJECT_NAME})
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME}_${PROJECT_NAME})
 
-if (MSVC)
-   string(REGEX MATCH "\/cl(.exe)?$" matched_cl ${CMAKE_CXX_COMPILER})
-   if (matched_cl)
-      # for a C++ standards compliant preprocessor, not needed for clang-cl
-      target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE "/Zc:preprocessor" /GL /permissive- /Zc:lambda)
-      target_link_options(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE /LTCG /INCREMENTAL:NO)
-   endif()
+# Set the C++ standard and module requirements
+target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC cxx_std_20)
+
+if (UT_ENABLE_MODULES)
+    # Enable module support
+    target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC cxx_modules)
+
+    # Add the module interface file
+    target_sources(${PROJECT_NAME}_${PROJECT_NAME}
+        PUBLIC
+            FILE_SET cxx_modules TYPE CXX_MODULES FILES include/ut/ut.cpp
+    )
+
+    # Ensure that consumers can locate the module interface
+    target_include_directories(${PROJECT_NAME}_${PROJECT_NAME}
+        INTERFACE
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    )
+
+    # Optionally, define any compiler-specific flags for modules
+    if (COMPILER_SUPPORTS_MODULES_TS)
+        target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "-fmodules-ts")
+    elseif (COMPILER_SUPPORTS_MSVC_MODULES)
+        target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "/interface")
+    endif()
 else()
-   target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE "-Wno-missing-braces")
+    # Modules are not supported; define UT_DISABLE_MODULE
+    target_compile_definitions(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC UT_DISABLE_MODULE)
+
+    # Use traditional include directories
+    target_include_directories(${PROJECT_NAME}_${PROJECT_NAME}
+        INTERFACE
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    )
+endif()
+
+# Handle compiler-specific options
+if (MSVC)
+    string(REGEX MATCH "/cl(.exe)?$" matched_cl ${CMAKE_CXX_COMPILER})
+    if (matched_cl)
+        # Use standards-compliant preprocessor and other flags
+        target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE
+            "/Zc:preprocessor" "/permissive-" "/Zc:lambda"
+        )
+        target_link_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "/LTCG" "/INCREMENTAL:NO")
+    endif()
+else()
+    target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "-Wno-missing-braces")
 endif()
 
 set_property(TARGET ${PROJECT_NAME}_${PROJECT_NAME} PROPERTY EXPORT_NAME ${PROJECT_NAME})
-
-target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE cxx_std_20)
-target_include_directories(
-   ${PROJECT_NAME}_${PROJECT_NAME} ${warning_guard}
-    INTERFACE "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-)
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(cmake/install-rules.cmake)
