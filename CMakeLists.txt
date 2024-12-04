@@ -1,4 +1,3 @@
-# Update the minimum required CMake version to at least 3.25 for module support
 cmake_minimum_required(VERSION 3.30)
 
 include(cmake/prelude.cmake)
@@ -14,54 +13,60 @@ include(cmake/variables.cmake)
 
 # Detect compiler support for C++20 modules
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-fmodules-ts" COMPILER_SUPPORTS_MODULES_TS)
 check_cxx_compiler_flag("/interface" COMPILER_SUPPORTS_MSVC_MODULES)
+check_cxx_compiler_flag("-fmodules" COMPILER_SUPPORTS_FMODULES)
 
 # Define a variable to determine if modules are supported
-if (COMPILER_SUPPORTS_MODULES_TS OR COMPILER_SUPPORTS_MSVC_MODULES)
+if (COMPILER_SUPPORTS_MSVC_MODULES OR COMPILER_SUPPORTS_FMODULES)
     set(UT_ENABLE_MODULES ON)
 else()
     set(UT_ENABLE_MODULES OFF)
 endif()
 
-# Add the library target; use STATIC instead of INTERFACE to allow module interface compilation
-add_library(${PROJECT_NAME}_${PROJECT_NAME})
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME}_${PROJECT_NAME})
-
-# Set the C++ standard and module requirements
-target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC cxx_std_20)
-
+# Conditionally add the library target based on module support
 if (UT_ENABLE_MODULES)
-    # Enable module support
-    target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC cxx_modules)
+    # Use OBJECT library when modules are supported
+    add_library(${PROJECT_NAME}_${PROJECT_NAME} OBJECT)
+    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME}_${PROJECT_NAME})
 
-    # Add the module interface file
+    # Set the C++ standard and module requirements
+    target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC cxx_std_20 cxx_modules)
+
+    # Add the module interface source file
     target_sources(${PROJECT_NAME}_${PROJECT_NAME}
-        PUBLIC
-            FILE_SET cxx_modules TYPE CXX_MODULES FILES include/ut/ut.cpp
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include/ut/ut.cpp
     )
 
     # Ensure that consumers can locate the module interface
     target_include_directories(${PROJECT_NAME}_${PROJECT_NAME}
-        INTERFACE
+        PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     )
 
     # Optionally, define any compiler-specific flags for modules
-    if (COMPILER_SUPPORTS_MODULES_TS)
-        target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "-fmodules-ts")
-    elseif (COMPILER_SUPPORTS_MSVC_MODULES)
+    if (COMPILER_SUPPORTS_MSVC_MODULES)
         target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "/interface")
+    elseif (COMPILER_SUPPORTS_FMODULES)
+        target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "-fmodules")
     endif()
 else()
-    # Modules are not supported; define UT_DISABLE_MODULE
-    target_compile_definitions(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC UT_DISABLE_MODULE)
+    # Use INTERFACE library when modules are not supported
+    add_library(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE)
+    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME}_${PROJECT_NAME})
+
+    # Define UT_DISABLE_MODULE
+    target_compile_definitions(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE UT_DISABLE_MODULE)
 
     # Use traditional include directories
     target_include_directories(${PROJECT_NAME}_${PROJECT_NAME}
         INTERFACE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     )
+    
+    # No need to add sources for INTERFACE library
+    # If you have any implementation files that need to be compiled,
+    # consider adding them to a separate target or adjust your design accordingly
 endif()
 
 # Handle compiler-specific options
