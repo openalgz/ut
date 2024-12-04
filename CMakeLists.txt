@@ -109,6 +109,9 @@ else()
     # Define UT_DISABLE_MODULE
     target_compile_definitions(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE UT_DISABLE_MODULE)
 
+    # Specify that C++23 is required
+    target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE cxx_std_23)
+
     # Use traditional include directories
     target_include_directories(${PROJECT_NAME}_${PROJECT_NAME}
         INTERFACE
