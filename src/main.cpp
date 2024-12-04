@@ -1,15 +1,8 @@
-#define UT_COMPILE_TIME
-
-#ifdef UT_DISABLE_MODULE
-#include "ut/ut.cppm"
-#else
 import ut;
-#endif
 
 using namespace ut;
 
-#include <exception>
-#include <string_view>
+import std;
 
 suite tests = [] {
    "double"_test = [] {
@@ -62,4 +55,6 @@ struct boolean_type
 
 suite bool_convertible = [] { "boolean_type"_test = []() mutable { expect(boolean_type{}); }; };
 
-int main() {}
+int main() {
+    return 0;
+}

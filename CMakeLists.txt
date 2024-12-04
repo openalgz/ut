@@ -11,22 +11,39 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-# Detect compiler support for C++20 modules flags
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("/interface" COMPILER_SUPPORTS_MSVC_MODULES)
-check_cxx_compiler_flag("-fmodules" COMPILER_SUPPORTS_FMODULES)
+set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "0e5b6991-d74f-4b3d-a41c-cf096e0b2508")
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_EXTENSIONS OFF) 
 
-# Enable modules if supported
-if (COMPILER_SUPPORTS_MSVC_MODULES OR COMPILER_SUPPORTS_FMODULES)
-    set(UT_ENABLE_MODULES ON)
-    message(STATUS "C++20 Modules are enabled.")
+option(ut_ENABLE_MODULES "Use C++20 Module" ON)
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.in")
+    if (ut_ENABLE_MODULES)
+        set(UT_HEADER [=[
+export module ut;
+import std;
+import std.compat;
+]=] CACHE INTERNAL "" FORCE)
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.in" "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.cppm" @ONLY)  
+    else()
+        set(UT_HEADER [=[
+#pragma once
+#include <concepts>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+#include <source_location>
+#include <string_view>
+]=]
+        CACHE INTERNAL "" FORCE)
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.in" "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.hpp" @ONLY)
+    endif()
 else()
-    set(UT_ENABLE_MODULES OFF)
-    message(WARNING "C++20 Modules are not supported by the current compiler. Falling back to traditional build.")
+    message(FATAL_ERROR "Missing ${PROJECT_NAME} Input: ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.in")
 endif()
 
 # Conditionally add the library target based on module support
-if (UT_ENABLE_MODULES)
+if (ut_ENABLE_MODULES)
     # Define a STATIC library when modules are supported
     add_library(${PROJECT_NAME}_${PROJECT_NAME} STATIC)
     add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME}_${PROJECT_NAME})
