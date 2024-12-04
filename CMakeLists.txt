@@ -28,14 +28,14 @@ endif()
 # Conditionally add the library target based on module support
 if (UT_ENABLE_MODULES)
     # Define a STATIC library when modules are supported
-    add_library(${PROJECT_NAME} STATIC)
-    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+    add_library(${PROJECT_NAME}_${PROJECT_NAME} STATIC)
+    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME}_${PROJECT_NAME})
 
     # Set the C++ standard and module requirements
-    target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+    target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC cxx_std_20)
 
     # Add module interface files using FILE_SET
-    target_sources(${PROJECT_NAME}
+    target_sources(${PROJECT_NAME}_${PROJECT_NAME}
         PRIVATE
             FILE_SET CXX_MODULES
                 FILES
@@ -43,7 +43,7 @@ if (UT_ENABLE_MODULES)
     )
 
     # Ensure that consumers can locate the module interface
-    target_include_directories(${PROJECT_NAME}
+    target_include_directories(${PROJECT_NAME}_${PROJECT_NAME}
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
@@ -51,31 +51,31 @@ if (UT_ENABLE_MODULES)
 
     # Optionally, define any compiler-specific flags for modules
     if (COMPILER_SUPPORTS_MSVC_MODULES)
-        target_compile_options(${PROJECT_NAME} PRIVATE "/interface")
+        target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "/interface")
     elseif (COMPILER_SUPPORTS_FMODULES)
-        target_compile_options(${PROJECT_NAME} PRIVATE "-fmodules")
+        target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "-fmodules")
     endif()
 
 else()
     # Use INTERFACE library when modules are not supported
-    add_library(${PROJECT_NAME} INTERFACE)
-    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+    add_library(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE)
+    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME}_${PROJECT_NAME})
 
     # Define UT_DISABLE_MODULE
-    target_compile_definitions(${PROJECT_NAME} INTERFACE UT_DISABLE_MODULE)
+    target_compile_definitions(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE UT_DISABLE_MODULE)
 
     # Specify that C++20 is required
-    target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
+    target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE cxx_std_20)
 
     # Use traditional include directories
-    target_include_directories(${PROJECT_NAME}
+    target_include_directories(${PROJECT_NAME}_${PROJECT_NAME}
         INTERFACE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
     )
 endif()
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY EXPORT_NAME ${PROJECT_NAME})
+set_property(TARGET ${PROJECT_NAME}_${PROJECT_NAME} PROPERTY EXPORT_NAME ${PROJECT_NAME})
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(cmake/install-rules.cmake)

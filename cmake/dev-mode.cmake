@@ -25,7 +25,7 @@ add_executable(${PROJECT_NAME}_ide ${sources})
 target_link_libraries(${PROJECT_NAME}_ide PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
 
 # Organize targets into folders within the IDE
-set_target_properties(${PROJECT_NAME} ${PROJECT_NAME}_ide PROPERTIES FOLDER ProjectTargets)
+set_target_properties(${PROJECT_NAME}_${PROJECT_NAME} ${PROJECT_NAME}_ide PROPERTIES FOLDER ProjectTargets)
 
 # Add tests for the executable
 add_test(NAME ${PROJECT_NAME}_ide COMMAND ${PROJECT_NAME}_ide)

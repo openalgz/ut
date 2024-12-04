@@ -284,7 +284,7 @@ UT_EXPORT namespace ut
 
    inline cfg_t cfg{};
 
-   constexpr struct expect_t
+   struct expect_t
    {
       template <bool Fatal>
       struct eval final
