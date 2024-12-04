@@ -71,7 +71,7 @@ if (COMPILER_SUPPORTS_MSVC_MODULES OR COMPILER_SUPPORTS_FMODULES)
     endif()
 
     # Clean up the temporary directory (optional)
-    # file(REMOVE_RECURSE "${TEST_COMPILE_DIR}")
+    file(REMOVE_RECURSE "${TEST_COMPILE_DIR}")
 endif()
 
 # Conditionally add the library target based on module support
