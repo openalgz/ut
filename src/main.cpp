@@ -1,6 +1,10 @@
 #define UT_COMPILE_TIME
 
+#ifdef UT_DISABLE_MODULE
 #include "ut/ut.cppm"
+#else
+import ut;
+#endif
 
 using namespace ut;
 

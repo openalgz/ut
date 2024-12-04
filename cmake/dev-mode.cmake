@@ -13,13 +13,10 @@ if(BUILD_TESTING)
 endif()
 
 # Done in developer mode only, so users won't be bothered by this :)
-file(GLOB_RECURSE headers CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/*.hpp")
-source_group(TREE "${PROJECT_SOURCE_DIR}/include" PREFIX headers FILES ${headers})
-
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cpp")
 source_group(TREE "${PROJECT_SOURCE_DIR}/src" PREFIX sources FILES ${sources})
 
-add_executable(${PROJECT_NAME}_ide ${sources} ${headers})
+add_executable(${PROJECT_NAME}_ide ${sources})
 
 target_link_libraries(${PROJECT_NAME}_ide PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
 

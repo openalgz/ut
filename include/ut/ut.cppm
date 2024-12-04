@@ -267,7 +267,7 @@ UT_EXPORT namespace ut
       Reporter& reporter;
    };
 
-   inline struct
+   struct cfg_t
    {
       struct
       {
@@ -280,9 +280,11 @@ UT_EXPORT namespace ut
       ut::outputter<decltype(stream)> outputter{stream};
       ut::reporter<decltype(outputter)> reporter{outputter};
       ut::runner<decltype(reporter)> runner{reporter};
-   } cfg;
+   };
 
-   constexpr struct
+   inline cfg_t cfg{};
+
+   constexpr struct expect_t
    {
       template <bool Fatal>
       struct eval final
@@ -346,7 +348,9 @@ UT_EXPORT namespace ut
             return *this;
          }
       };
-   } expect{};
+   };
+
+   inline expect_t expect{};
 
    struct suite final
    {
