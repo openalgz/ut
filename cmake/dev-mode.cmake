@@ -1,25 +1,31 @@
 enable_language(CXX)
 
-# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
-  cmake_policy(SET CMP0135 NEW)
-endif()
+cmake_minimum_required(VERSION 3.30)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 include(CTest)
 if(BUILD_TESTING)
-  #add_subdirectory(tests)
+  # Uncomment and configure tests as needed
+  # add_subdirectory(tests)
 endif()
 
-# Done in developer mode only, so users won't be bothered by this :)
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cpp")
+# Gather source files for the dev-mode executable
+# Since the library is module-based, you might not need to gather additional source files
+# If main.cpp exists and is part of the executable, include it directly
+
+set(sources "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+
+# Organize source files into IDE-friendly groups
 source_group(TREE "${PROJECT_SOURCE_DIR}/src" PREFIX sources FILES ${sources})
 
 add_executable(${PROJECT_NAME}_ide ${sources})
 
+# Link against the 'ut' library
 target_link_libraries(${PROJECT_NAME}_ide PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
 
-set_target_properties(${PROJECT_NAME}_${PROJECT_NAME} ${PROJECT_NAME}_ide PROPERTIES FOLDER ProjectTargets)
+# Organize targets into folders within the IDE
+set_target_properties(${PROJECT_NAME} ${PROJECT_NAME}_ide PROPERTIES FOLDER ProjectTargets)
 
+# Add tests for the executable
 add_test(NAME ${PROJECT_NAME}_ide COMMAND ${PROJECT_NAME}_ide)
