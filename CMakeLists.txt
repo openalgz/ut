@@ -119,18 +119,6 @@ else()
     )
 endif()
 
-# Handle compiler-specific options
-if (MSVC)
-    string(REGEX MATCH "/cl(.exe)?$" matched_cl ${CMAKE_CXX_COMPILER})
-    if (matched_cl)
-        # Use standards-compliant preprocessor and other flags
-        target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE
-            "/Zc:preprocessor" "/permissive-" "/Zc:lambda"
-        )
-        target_link_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "/LTCG" "/INCREMENTAL:NO")
-    endif()
-endif()
-
 set_property(TARGET ${PROJECT_NAME}_${PROJECT_NAME} PROPERTY EXPORT_NAME ${PROJECT_NAME})
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
