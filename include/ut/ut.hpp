@@ -5,11 +5,20 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See http://www.boost.org/LICENSE_1_0.txt)
 
-@UT_HEADER@
-#ifndef UT_DISABLE_MODULE
-#define UT_EXPORT export
-#else
+#pragma once
+#include <concepts>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+#include <source_location>
+#include <string_view>
+
+#ifndef UT_EXPORT
 #define UT_EXPORT
+#endif
+
+#ifndef UT_MODULE
+#define UT_MODULE false
 #endif
 
 UT_EXPORT namespace ut

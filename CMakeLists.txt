@@ -17,14 +17,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(ut_ENABLE_MODULES "Use C++20 Module" ON)
 
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.in")
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.hpp.in")
     if (ut_ENABLE_MODULES)
         set(UT_HEADER [=[
 export module ut;
 import std;
 import std.compat;
+
+#ifndef UT_EXPORT
+#define UT_EXPORT export
+#endif
+
+#ifndef UT_MODULE
+#define UT_MODULE true
+#endif
 ]=] CACHE INTERNAL "" FORCE)
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.in" "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.cppm" @ONLY)  
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.cppm" @ONLY)  
     else()
         set(UT_HEADER [=[
 #pragma once
@@ -34,12 +42,20 @@ import std.compat;
 #include <iostream>
 #include <source_location>
 #include <string_view>
+
+#ifndef UT_EXPORT
+#define UT_EXPORT
+#endif
+
+#ifndef UT_MODULE
+#define UT_MODULE false
+#endif
 ]=]
         CACHE INTERNAL "" FORCE)
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.in" "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.hpp" @ONLY)
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.hpp" @ONLY)
     endif()
 else()
-    message(FATAL_ERROR "Missing ${PROJECT_NAME} Input: ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.in")
+    message(FATAL_ERROR "Missing ${PROJECT_NAME} Input: ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ut.hpp.in")
 endif()
 
 # Conditionally add the library target based on module support

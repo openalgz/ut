@@ -1,8 +1,12 @@
+#ifdef UT_MODULE
 import ut;
+import std;
+#else
+#include "ut/ut.hpp"
+#include <string_view>
+#endif
 
 using namespace ut;
-
-import std;
 
 suite tests = [] {
    "double"_test = [] {
