@@ -1,6 +1,6 @@
 #define UT_COMPILE_TIME
 
-#include "ut/ut.hpp"
+#include "ut/ut.cppm"
 
 using namespace ut;
 

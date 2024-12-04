@@ -30,12 +30,12 @@ if (UT_ENABLE_MODULES)
     add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME}_${PROJECT_NAME})
 
     # Set the C++ standard and module requirements
-    target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC cxx_std_20 cxx_modules)
+    target_compile_features(${PROJECT_NAME}_${PROJECT_NAME} PUBLIC cxx_std_23)
 
     # Add the module interface source file
     target_sources(${PROJECT_NAME}_${PROJECT_NAME}
         PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/include/ut/ut.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/include/ut/ut.cppm
     )
 
     # Ensure that consumers can locate the module interface
@@ -63,10 +63,6 @@ else()
         INTERFACE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     )
-    
-    # No need to add sources for INTERFACE library
-    # If you have any implementation files that need to be compiled,
-    # consider adding them to a separate target or adjust your design accordingly
 endif()
 
 # Handle compiler-specific options
