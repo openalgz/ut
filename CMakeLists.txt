@@ -11,16 +11,67 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-# Detect compiler support for C++20 modules
+# Detect compiler support for C++20 modules flags
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("/interface" COMPILER_SUPPORTS_MSVC_MODULES)
 check_cxx_compiler_flag("-fmodules" COMPILER_SUPPORTS_FMODULES)
 
-# Define a variable to determine if modules are supported
+# Initialize UT_ENABLE_MODULES to OFF
+set(UT_ENABLE_MODULES OFF)
+
+# Check if either MSVC or FMODULES flags are supported
 if (COMPILER_SUPPORTS_MSVC_MODULES OR COMPILER_SUPPORTS_FMODULES)
-    set(UT_ENABLE_MODULES ON)
-else()
-    set(UT_ENABLE_MODULES OFF)
+    # Determine the appropriate module flag
+    if (COMPILER_SUPPORTS_MSVC_MODULES)
+        set(MODULE_FLAG "/interface")
+    else()
+        set(MODULE_FLAG "-fmodules")
+    endif()
+
+    # Create a temporary directory for the test
+    set(TEST_COMPILE_DIR "${CMAKE_BINARY_DIR}/CMakeTmp/module_test")
+
+    file(MAKE_DIRECTORY "${TEST_COMPILE_DIR}")
+
+    # Create a minimal CMakeLists.txt for the test
+    file(WRITE "${TEST_COMPILE_DIR}/CMakeLists.txt" "
+        cmake_minimum_required(VERSION 3.30)
+        project(ModuleTest LANGUAGES CXX)
+        set(CMAKE_CXX_STANDARD 20)
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+        add_library(ModuleTest OBJECT test_module.cppm)
+        target_compile_options(ModuleTest PRIVATE ${MODULE_FLAG})
+    ")
+
+    # Create the test module source file
+    file(WRITE "${TEST_COMPILE_DIR}/test_module.cppm" "module;")
+
+    # Attempt to compile the test module
+    try_compile(
+        MODULE_COMPILES             # Variable to store the result
+        "${TEST_COMPILE_DIR}"       # Directory for the build
+        "${TEST_COMPILE_DIR}/test_module.cppm"  # Source file
+        # Pass the module flag via CMAKE_CXX_FLAGS
+        CMAKE_FLAGS
+            -DCMAKE_CXX_FLAGS=${MODULE_FLAG}
+            -DCMAKE_CXX_STANDARD=20
+            -DCMAKE_CXX_STANDARD_REQUIRED=ON
+        OUTPUT_VARIABLE MODULE_COMPILE_OUTPUT  # Capture compile output (optional)
+    )
+
+    # Optionally, you can output the compile results for debugging
+    # message(STATUS "Module compile output: ${MODULE_COMPILE_OUTPUT}")
+
+    # Set UT_ENABLE_MODULES based on the compilation result
+    if (MODULE_COMPILES)
+        set(UT_ENABLE_MODULES ON)
+    else()
+        set(UT_ENABLE_MODULES OFF)
+        message(STATUS "C++20 modules are not supported by the compiler.")
+    endif()
+
+    # Clean up the temporary directory (optional)
+    # file(REMOVE_RECURSE "${TEST_COMPILE_DIR}")
 endif()
 
 # Conditionally add the library target based on module support
@@ -75,8 +126,6 @@ if (MSVC)
         )
         target_link_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "/LTCG" "/INCREMENTAL:NO")
     endif()
-else()
-    target_compile_options(${PROJECT_NAME}_${PROJECT_NAME} PRIVATE "-Wno-missing-braces")
 endif()
 
 set_property(TARGET ${PROJECT_NAME}_${PROJECT_NAME} PROPERTY EXPORT_NAME ${PROJECT_NAME})
