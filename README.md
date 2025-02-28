@@ -20,7 +20,7 @@ Runtime testing is always enabled.
 
 ### Requirements
 
-- C++20
+- C++23
 
 ## Example
 
