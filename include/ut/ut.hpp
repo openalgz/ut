@@ -16,7 +16,7 @@ namespace ut
 {
    namespace detail
    {
-      constexpr bool fatal = true;
+      inline constexpr bool fatal = true;
 
       template <class>
       constexpr auto is_mutable_lambda_v = false;
@@ -292,8 +292,6 @@ namespace ut
          return log{eval<not detail::fatal>{test_passed, loc}.passed};
       }
 
-#if __cplusplus >= 202300L
-      // if we have C++23
       template <class T>
          requires std::convertible_to<T, bool>
       constexpr auto operator[](T&& test_passed,
@@ -301,14 +299,6 @@ namespace ut
       {
          return log{eval<detail::fatal>{test_passed, loc}.passed};
       }
-#else
-      template <class T>
-         requires std::convertible_to<T, bool>
-      constexpr auto operator[](T&& test_passed) const
-      {
-         return log{eval<detail::fatal>{test_passed, std::source_location::current()}.passed};
-      }
-#endif
 
      private:
       struct log final
@@ -353,7 +343,7 @@ namespace ut
       };
    }
 
-   constexpr auto test(const std::string_view name) { return detail::runtime_test{name}; }
+   inline constexpr auto test(const std::string_view name) { return detail::runtime_test{name}; }
 
    template <detail::fixed_string Str>
    [[nodiscard]] constexpr auto operator""_test()
