@@ -32,26 +32,28 @@ namespace ut
       {
          using type = T;
       };
-      template <size_t Size>
-      struct fixed_string
-      {
-         constexpr fixed_string(const char (&str)[Size])
-         {
-            for (size_t i = 0; i < Size; ++i) {
-               storage[i] = str[i];
-            }
-         }
-         [[nodiscard]] constexpr auto operator[](const auto i) const { return storage[i]; }
-         [[nodiscard]] constexpr auto data() const { return storage; }
-         [[nodiscard]] static constexpr auto size() { return Size; }
-         [[nodiscard]] constexpr operator std::string_view() const { return {storage, Size}; }
-         constexpr friend auto operator<<(auto& os, const fixed_string& fs) -> decltype(auto)
-         {
-            return os << fs.storage;
-         }
-         char storage[Size]{};
-      };
    }
+
+   template <size_t Size>
+   struct fixed_string
+   {
+      constexpr fixed_string(const char (&str)[Size])
+      {
+         for (size_t i = 0; i < Size; ++i) {
+            storage[i] = str[i];
+         }
+      }
+      [[nodiscard]] constexpr auto operator[](const auto i) const { return storage[i]; }
+      [[nodiscard]] constexpr auto data() const { return storage; }
+      [[nodiscard]] static constexpr auto size() { return Size - 1; }
+      [[nodiscard]] constexpr operator std::string_view() const { return {storage, Size - 1}; }
+      constexpr friend auto operator<<(auto& os, const fixed_string& fs) -> decltype(auto)
+      {
+         return os << std::string_view{fs.storage, fs.size()};
+      }
+      char storage[Size]{};
+   };
+
    namespace events
    {
       enum class mode { run_time, compile_time };
@@ -355,7 +357,7 @@ namespace ut
 
    constexpr auto test(const std::string_view name) { return detail::runtime_test{name}; }
 
-   template <detail::fixed_string Str>
+   template <fixed_string Str>
    [[nodiscard]] constexpr auto operator""_test()
    {
       return detail::test<Str>{};
