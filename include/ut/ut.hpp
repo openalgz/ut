@@ -2,6 +2,14 @@
 // Copyright (c) 2024 Kris Jusiak (kris at jusiak dot net)
 // Distributed under the Boost Software License, Version 1.0.
 // (See http://www.boost.org/LICENSE_1_0.txt)
+//
+// UT: A simple C++23 unit testing library with compile-time and run-time support.
+//
+// Running specific tests:
+//   Set the UT_RUN environment variable to run only specific tests by name.
+//   Single test:    UT_RUN="my test" ./my_tests
+//   Multiple tests: UT_RUN="[test1,test2,test3]" ./my_tests
+//   If UT_RUN is not set, all tests run (default behavior).
 
 #pragma once
 
@@ -223,6 +231,37 @@ namespace ut
             }
          }
          else {
+            static const std::string_view filter = []() -> std::string_view {
+               if (const char* env = std::getenv("UT_RUN")) return env;
+               return {};
+            }();
+
+            auto matches_filter = [](std::string_view test_name, std::string_view f) {
+               if (f.empty()) return true;
+
+               // Array format: [test1,test2,test3]
+               if (f.starts_with('[') && f.ends_with(']')) {
+                  auto content = f.substr(1, f.size() - 2);
+                  size_t pos = 0;
+                  while (pos < content.size()) {
+                     auto comma = content.find(',', pos);
+                     auto token = (comma == std::string_view::npos) ? content.substr(pos)
+                                                                    : content.substr(pos, comma - pos);
+                     if (token == test_name) return true;
+                     if (comma == std::string_view::npos) break;
+                     pos = comma + 1;
+                  }
+                  return false;
+               }
+
+               // Single test name
+               return test_name == f;
+            };
+
+            if (!matches_filter(name, filter)) {
+               return false;
+            }
+
 #if defined(UT_COMPILE_TIME)
             if constexpr (!requires { requires detail::is_mutable_lambda_v<decltype(&Test::operator())>; } &&
                           !detail::has_capture_lambda_v<Test>) {

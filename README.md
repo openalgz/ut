@@ -18,9 +18,21 @@ To enable compile time testing you must define the macro: `UT_COMPILE_TIME`
 
 Runtime testing is always enabled.
 
+### Running Specific Tests
+
+Use the `UT_RUN` environment variable to run specific tests by name:
+
+```bash
+# Single test
+UT_RUN="test name" ./my_tests
+
+# Multiple tests
+UT_RUN="[test1,test2,test3]" ./my_tests
+```
+
 ### Requirements
 
-- C++20
+- C++23
 
 ## Example
 
