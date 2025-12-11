@@ -245,8 +245,8 @@ namespace ut
                   size_t pos = 0;
                   while (pos < content.size()) {
                      auto comma = content.find(',', pos);
-                     auto token = (comma == std::string_view::npos) ? content.substr(pos)
-                                                                    : content.substr(pos, comma - pos);
+                     auto token =
+                        (comma == std::string_view::npos) ? content.substr(pos) : content.substr(pos, comma - pos);
                      if (token == test_name) return true;
                      if (comma == std::string_view::npos) break;
                      pos = comma + 1;

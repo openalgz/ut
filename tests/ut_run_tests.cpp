@@ -7,25 +7,15 @@ using namespace ut;
 
 // Define exactly 5 tests with known names for predictable testing
 suite filter_tests = [] {
-   "alpha"_test = [] {
-      expect(true);
-   };
+   "alpha"_test = [] { expect(true); };
 
-   "beta"_test = [] {
-      expect(true);
-   };
+   "beta"_test = [] { expect(true); };
 
-   "gamma"_test = [] {
-      expect(true);
-   };
+   "gamma"_test = [] { expect(true); };
 
-   test("delta test") = [] {
-      expect(true);
-   };
+   test("delta test") = [] { expect(true); };
 
-   test("epsilon test") = [] {
-      expect(true);
-   };
+   test("epsilon test") = [] { expect(true); };
 };
 
 int main() {}
