@@ -14,6 +14,7 @@ include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
 option(UT_ENABLE_MODULES "Enable modules with import std" OFF)
+option(UT_ENABLE_SHARED "Build modules as a shared library" OFF)
 option(UT_COMPILE_TIME "Enable compile time features" OFF)
 
 if(UT_ENABLE_MODULES)
@@ -22,8 +23,14 @@ if(UT_ENABLE_MODULES)
   endif()
 endif()
 
-if(UT_ENABLE_MODULES)
+if(UT_ENABLE_MODULES AND (NOT UT_ENABLE_SHARED))
   add_library(${PROJECT_NAME}_${PROJECT_NAME} STATIC)
+  set(UT_LIB_TYPE PUBLIC)
+elseif(UT_ENABLED_MODULES AND UT_ENABLE_SHARED)
+  add_library(${PROJECT_NAME}_${PROJECT_NAME} SHARED)
+  set_target_properties(${PROJECT_NAME}_${PROJECT_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
   set(UT_LIB_TYPE PUBLIC)
 else()
   add_library(${PROJECT_NAME}_${PROJECT_NAME} INTERFACE)
