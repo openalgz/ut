@@ -8,6 +8,11 @@ on:
       - '**.md'
   workflow_dispatch:
 
+# Third-party actions are pinned to full commit SHAs: this job holds a token that
+# can push to main, so a moving tag would be a direct path to compromising the repo.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,8 +21,8 @@ jobs:
       contents: write  # Grant write permission to the repository content
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: DoozyX/clang-format-lint-action@v0.20
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: DoozyX/clang-format-lint-action@bcb4eb2cb0d707ee4f3e5cc3b456eb075f12cf73 # v0.20
         with:
           source: '.'
           exclude: ''
@@ -25,6 +30,6 @@ jobs:
           clangFormatVersion: 20
           style: file
           inplace: True
-      - uses: EndBug/add-and-commit@v10
+      - uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10.0.0
         with:
           message: 'Committing clang-format changes'

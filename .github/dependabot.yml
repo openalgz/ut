@@ -1,0 +1,13 @@
+version: 2
+
+updates:
+  # Actions are pinned to commit SHAs for supply-chain safety; Dependabot keeps
+  # those pins current and rewrites the trailing "# vX.Y.Z" comment as it goes.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns:
+          - '*'

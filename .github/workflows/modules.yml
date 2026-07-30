@@ -11,6 +11,9 @@ on:
     release:
         types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: ${{ matrix.runs_on }}-${{ matrix.compiler }}-${{ matrix.configure_preset }}
@@ -40,12 +43,12 @@ jobs:
             test_preset : "linux-test"
     steps:
 
-    - uses: actions/checkout@v6
-    
-    - uses: lukka/get-cmake@latest
-  
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - uses: lukka/get-cmake@4a7d025fc60f00db0c7b44ebf783d19b52444830 # v4.4.1
+
     - name: "Build & Test"
-      uses: lukka/run-cmake@v10
+      uses: lukka/run-cmake@5d55ea7949e25f69f0ecb516d8d572297e03a956 # v10.9
       env:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}

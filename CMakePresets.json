@@ -29,22 +29,6 @@
       }
     },
     {
-      "name": "windows-base-preview",
-      "description": "Base preset for MSVC v14.51",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "toolset": {
-        "value": "v145,host=x64,version=14.51"
-      }
-    },
-    {
       "name": "windows-vs-base",
       "hidden": true,
       "generator": "Visual Studio 18 2026",
