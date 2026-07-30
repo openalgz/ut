@@ -1,6 +1,35 @@
-cmake_minimum_required(VERSION 3.31) 
+cmake_minimum_required(VERSION 3.31)
 
-set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b") 
+# CMake gates `import std` behind an opt-in UUID that it changes as the feature
+# evolves, so a value hardcoded for one release makes every other release fail.
+# It also has to be set before CXX is enabled, hence its position above
+# project(). Values are published in CMake's Help/dev/experimental.rst; add a
+# row when a new release changes the gate.
+set(_ut_import_std_gates
+  "3.31=0e5b6991-d74f-4b3d-a41c-cf096e0b2508"
+  "4.0=a9e1cf81-9932-4810-974b-6eccaf14e457"
+  "4.1=d0edc3af-4c50-42ea-a356-e2862fe7a444"
+  "4.2=d0edc3af-4c50-42ea-a356-e2862fe7a444"
+  "4.3=451f2fe2-a8a2-47c3-bc32-94786d8fc91b"
+  "4.4=f35a9ac6-8463-4d38-8eec-5d6008153e7d"
+)
+
+set(UT_IMPORT_STD_GATE "")
+foreach(_ut_gate IN LISTS _ut_import_std_gates)
+  if(_ut_gate MATCHES "^${CMAKE_MAJOR_VERSION}\\.${CMAKE_MINOR_VERSION}=(.+)$")
+    set(UT_IMPORT_STD_GATE "${CMAKE_MATCH_1}")
+    break()
+  endif()
+endforeach()
+unset(_ut_gate)
+unset(_ut_import_std_gates)
+
+# Leave the variable unset on an unknown release: a wrong UUID is reported as a
+# confusing "set to incorrect value" warning, whereas an absent one lets the
+# UT_ENABLE_MODULES branch below explain what actually needs updating.
+if(UT_IMPORT_STD_GATE)
+  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "${UT_IMPORT_STD_GATE}")
+endif()
 
 include(cmake/prelude.cmake)
 
@@ -17,6 +46,14 @@ option(UT_ENABLE_MODULES "Enable modules with import std" OFF)
 option(UT_COMPILE_TIME "Enable compile time features" OFF)
 
 if(UT_ENABLE_MODULES)
+  if(NOT UT_IMPORT_STD_GATE)
+    message(WARNING
+        "CMake ${CMAKE_VERSION} is newer than any release listed in the `import std` "
+        "gate table at the top of CMakeLists.txt, so UT_ENABLE_MODULES will likely "
+        "fail to configure. Add this release's CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "
+        "value from CMake's Help/dev/experimental.rst to that table."
+    )
+  endif()
   if(NOT CMAKE_GENERATOR MATCHES "Visual Studio") ## Support should be added with 4.4, todo: check when available
     set(CMAKE_CXX_MODULE_STD 1)
   endif()
