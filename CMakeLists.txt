@@ -54,7 +54,13 @@ if(UT_ENABLE_MODULES)
         "value from CMake's Help/dev/experimental.rst to that table."
     )
   endif()
-  if(NOT CMAKE_GENERATOR MATCHES "Visual Studio") ## Support should be added with 4.4, todo: check when available
+  # `import std` remains Ninja-only: the Visual Studio generators cannot build
+  # BMIs for IMPORTED targets, and the std module is modeled as one. This is a
+  # standing limitation rather than a pending release -- still documented as such
+  # in CMake 4.4, under "import std Support" and "Limitations" in
+  # cmake-cxxmodules(7). Drop this guard only once that text changes; MSVC itself
+  # has been capable since toolset 14.36.
+  if(NOT CMAKE_GENERATOR MATCHES "Visual Studio")
     set(CMAKE_CXX_MODULE_STD 1)
   endif()
 endif()
