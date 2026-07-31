@@ -27,7 +27,23 @@ unset(_ut_import_std_gates)
 # Leave the variable unset on an unknown release: a wrong UUID is reported as a
 # confusing "set to incorrect value" warning, whereas an absent one lets the
 # UT_ENABLE_MODULES branch below explain what actually needs updating.
-if(UT_IMPORT_STD_GATE)
+#
+# Defer to a value the consumer put in the cache, so
+# `-DCMAKE_EXPERIMENTAL_CXX_IMPORT_STD=...` is an escape hatch when a table row is
+# wrong or missing. A plain set() here would shadow the cache entry `-D` creates
+# and silently discard it.
+#
+# Test the cache specifically rather than DEFINED: when this project is consumed
+# via add_subdirectory() or FetchContent, a parent that hardcodes a single UUID as
+# an ordinary variable -- the pattern this table replaced -- would otherwise beat
+# the table on every release and pass its staleness on to us. A cache entry is a
+# deliberate override; a parent's ordinary variable usually is not.
+#
+# Assigning to the cache here would also restore the override, but it would pin the
+# UUID in CMakeCache.txt for everyone, so upgrading CMake in an existing build tree
+# would keep using the previous release's value and quietly ignore the table -- the
+# failure this table exists to prevent.
+if(UT_IMPORT_STD_GATE AND NOT DEFINED CACHE{CMAKE_EXPERIMENTAL_CXX_IMPORT_STD})
   set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "${UT_IMPORT_STD_GATE}")
 endif()
 
@@ -46,12 +62,34 @@ option(UT_ENABLE_MODULES "Enable modules with import std" OFF)
 option(UT_COMPILE_TIME "Enable compile time features" OFF)
 
 if(UT_ENABLE_MODULES)
-  if(NOT UT_IMPORT_STD_GATE)
+  # Report on the gate value actually in effect. Each branch describes a different
+  # cause, so they cannot be collapsed: an unlisted release needs a new table row,
+  # while a suppressed or overridden value is something the consumer did and only
+  # they can undo.
+  if(NOT CMAKE_EXPERIMENTAL_CXX_IMPORT_STD AND NOT UT_IMPORT_STD_GATE)
     message(WARNING
         "CMake ${CMAKE_VERSION} is newer than any release listed in the `import std` "
         "gate table at the top of CMakeLists.txt, so UT_ENABLE_MODULES will likely "
         "fail to configure. Add this release's CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "
-        "value from CMake's Help/dev/experimental.rst to that table."
+        "value from CMake's Help/dev/experimental.rst to that table, or pass the "
+        "value directly with -DCMAKE_EXPERIMENTAL_CXX_IMPORT_STD=<uuid>."
+    )
+  elseif(NOT CMAKE_EXPERIMENTAL_CXX_IMPORT_STD)
+    message(WARNING
+        "CMAKE_EXPERIMENTAL_CXX_IMPORT_STD was supplied with an empty or false value, "
+        "which suppresses the gate this project selected for CMake ${CMAKE_VERSION} "
+        "(${UT_IMPORT_STD_GATE}), so UT_ENABLE_MODULES will likely fail to configure. "
+        "Pass a UUID, or drop the override with -UCMAKE_EXPERIMENTAL_CXX_IMPORT_STD."
+    )
+  elseif(UT_IMPORT_STD_GATE AND
+         NOT CMAKE_EXPERIMENTAL_CXX_IMPORT_STD STREQUAL UT_IMPORT_STD_GATE)
+    # Cached overrides outlive the command line that introduced them, so say so
+    # rather than let a stale one look like the table's own choice.
+    message(STATUS
+        "Using supplied CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "
+        "(${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD}) instead of the value this project "
+        "lists for CMake ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} "
+        "(${UT_IMPORT_STD_GATE}). Pass -UCMAKE_EXPERIMENTAL_CXX_IMPORT_STD to restore it."
     )
   endif()
   # `import std` remains Ninja-only: the Visual Studio generators cannot build
