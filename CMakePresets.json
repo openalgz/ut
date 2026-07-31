@@ -29,31 +29,6 @@
       }
     },
     {
-      "name": "windows-base-preview",
-      "description": "Base preset for MSVC v14.51",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "toolset": {
-        "value": "v145,host=x64,version=14.51"
-      }
-    },
-    {
-      "name": "x64-preview",
-      "displayName": "x64 Debug (MSVC v14.51 Preview)",
-      "inherits": "windows-base-preview",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      }
-    },
-    {
       "name": "windows-vs-base",
       "hidden": true,
       "generator": "Visual Studio 18 2026",
@@ -72,8 +47,8 @@
       "architecture": "x64"
     },
     {
-      "name": "linux-debug",
-      "displayName": "Linux Debug",
+      "name": "linux",
+      "displayName": "Linux Debug (CI)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
@@ -98,12 +73,8 @@
       "configuration": "Debug"
     },
     {
-      "name": "x64-preview-build",
-      "configurePreset": "x64-preview"
-    },
-    {
-      "name": "linux-debug-build",
-      "configurePreset": "linux-debug"
+      "name": "linux-build",
+      "configurePreset": "linux"
     }
   ],
   "testPresets": [
@@ -121,12 +92,8 @@
       }
     },
     {
-      "name": "x64-preview-test",
-      "configurePreset": "x64-preview"
-    },
-    {
-      "name": "linux-debug-test",
-      "configurePreset": "linux-debug"
+      "name": "linux-test",
+      "configurePreset": "linux"
     }
   ]
 }
