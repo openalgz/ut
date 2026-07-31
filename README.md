@@ -34,6 +34,27 @@ import ut;
 
 Please note that modules integration requires compiler and build tools that support `import std`.
 
+##### Consuming ut as a subproject
+
+CMake puts `import std` behind an experimental UUID that changes between CMake releases. When ut is the top-level project it selects the right value for the running CMake on its own, and nothing else is needed.
+
+That is not possible when ut is added with `add_subdirectory()` or `FetchContent`. CMake reads the value while enabling `CXX`, which your own `project()` call has already done before ut is added, so ut is reached too late to set it. Set it yourself, before `project()`:
+
+```cmake
+set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "f35a9ac6-8463-4d38-8eec-5d6008153e7d")
+project(my_project LANGUAGES CXX)
+```
+
+or pass it on the command line, which works the same way:
+
+```bash
+cmake -B build -DCMAKE_EXPERIMENTAL_CXX_IMPORT_STD=f35a9ac6-8463-4d38-8eec-5d6008153e7d
+```
+
+Otherwise CMake fails with `Experimental 'import std' support not enabled when detecting toolchain`.
+
+The value above is the one for CMake 4.4. Each release publishes its own in CMake's `Help/dev/experimental.rst`, and the table at the top of ut's `CMakeLists.txt` lists those known to work.
+
 ### Running Specific Tests
 
 Use the `UT_RUN` environment variable to run specific tests by name:
