@@ -231,6 +231,9 @@ namespace ut
             }
          }
          else {
+#if defined(_MSC_VER)
+#pragma warning(suppress : 4996)
+#endif
             static const std::string_view filter = []() -> std::string_view {
                if (const char* env = std::getenv("UT_RUN")) return env;
                return {};
