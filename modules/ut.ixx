@@ -34,6 +34,19 @@ namespace ut
       {
          using type = T;
       };
+      [[nodiscard]] inline const std::string& run_filter()
+      {
+         static const std::string filter = [] {
+#if defined(_MSC_VER)
+#pragma warning(suppress : 4996)
+#endif
+            const char* const env = std::getenv("UT_RUN");
+
+            return env != nullptr ? std::string{env} : std::string{};
+         }();
+
+         return filter;
+      }
    }
 
    export template <std::size_t Size>
@@ -225,11 +238,7 @@ namespace ut
             }
          }
          else {
-            static const std::string_view filter = []() -> std::string_view {
-               if (const char* env = std::getenv("UT_RUN")) return env;
-               return {};
-            }();
-
+            const auto& filter = detail::run_filter();
             auto matches_filter = [](std::string_view test_name, std::string_view f) {
                if (f.empty()) return true;
 
